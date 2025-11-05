@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const order = require('../controllers/order');
+const order = require('../Controllers/order');
 
 // Existing routes
 router.post('/order', order.createOrder);

@@ -1,6 +1,8 @@
 // js/payment.js
 (function(){
+  // ------------------------------
   // Payment options data
+  // ------------------------------
   const paymentOptions = [
     { id: 'cod', label: 'Cash on Delivery', sub: 'Pay when you receive order' },
     { id: 'gcash', label: 'GCash', sub: 'Pay via QR or GCash number' },
@@ -12,11 +14,13 @@
   // GCash mock details (edit to your actual account)
   const gcashDetails = {
     name: 'UniTree Flowers',
-    number: '0917-123-4567'
-    // If you have an actual QR image URL, you could replace the SVG in HTML or update src here.
+    number: '0917-123-4567',
+    label: 'GCash'
   };
 
-  // Elements
+  // ------------------------------
+  // DOM elements
+  // ------------------------------
   const usePaymentBtn = document.getElementById('usePaymentBtn');
   const paymentModal = document.getElementById('paymentModal');
   const quickPaymentList = document.getElementById('quickPaymentList');
@@ -44,13 +48,41 @@
   let selectedPayment = null; // holds id chosen in "all" modal (not yet confirmed)
   let confirmedPayment = null; // holds id confirmed for checkout
 
-  // Utility to create option element
+  // ------------------------------
+  // Helpers
+  // ------------------------------
+  function formatPHP(amount) {
+    const n = Number(amount) || 0;
+    const parts = n.toFixed(2).split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return `₱${parts.join('.')}`;
+  }
+
+  function getTotalAmount() {
+    const el = document.getElementById('total');
+    if (!el) return 0;
+    const txt = (el.textContent || el.innerText || '').trim();
+    const num = txt.replace(/[^0-9.\-]/g, '');
+    return parseFloat(num) || 0;
+  }
+
+  function openModal(modal) {
+    if (!modal) return;
+    modal.style.display = 'flex';
+  }
+  function closeModal(modal) {
+    if (!modal) return;
+    modal.style.display = 'none';
+  }
+
+  // ------------------------------
+  // Payment option creation
+  // ------------------------------
   function createPaymentNode(opt, clickHandler) {
     const div = document.createElement('div');
     div.className = 'payment-option';
     div.dataset.id = opt.id;
 
-    // icon: choose icon by id (simple mapping)
     let iconClass = 'fa-solid fa-hand-holding-dollar';
     if (opt.id === 'gcash') iconClass = 'fa-solid fa-qrcode';
     if (opt.id === 'cod') iconClass = 'fa-solid fa-box';
@@ -70,18 +102,14 @@
     `;
 
     div.addEventListener('click', () => {
-      // visual marking of selected in whichever container this is placed
       const parent = div.parentElement;
       markSelected(parent, opt.id);
-
-      // call provided handler so caller can respond to selection
       if (typeof clickHandler === 'function') clickHandler(opt);
     });
 
     return div;
   }
 
-  // mark selected in a given container
   function markSelected(container, id) {
     if (!container) return;
     const options = container.querySelectorAll('.payment-option');
@@ -97,15 +125,15 @@
     });
   }
 
-  // populate quick modal (show first two options)
+  // ------------------------------
+  // Populate quick & all lists
+  // ------------------------------
   function populateQuick() {
     quickPaymentList.innerHTML = '';
     const quickOptions = paymentOptions.slice(0,2);
     quickOptions.forEach(opt => {
       const node = createPaymentNode(opt, (option) => {
-        // For quick selection: handle GCash specially (open QR), else confirm
         if (option.id === 'gcash') {
-          // open QR modal
           openGcashModal();
         } else {
           confirmedPayment = option.id;
@@ -117,28 +145,23 @@
     });
   }
 
-  // populate all payments list
   function populateAll() {
     allPaymentList.innerHTML = '';
     paymentOptions.forEach(opt => {
       const node = createPaymentNode(opt, (option) => {
-        // selecting in all list sets selectedPayment (not confirmed)
         selectedPayment = option.id;
       });
       allPaymentList.appendChild(node);
     });
 
-    // if previously selected, mark it
     if (selectedPayment) markSelected(allPaymentList, selectedPayment);
   }
 
-  // finalize & reflect selection to UI
   function finalizePaymentSelection() {
     const p = paymentOptions.find(x => x.id === confirmedPayment);
     if (p) {
       paymentLabel.textContent = p.label;
       paymentLabel.dataset.id = p.id;
-      // enable checkout
       if (checkoutBtn) {
         checkoutBtn.disabled = false;
         checkoutBtn.classList.remove('disabled');
@@ -146,17 +169,10 @@
     }
   }
 
-  // simple modal open/close helpers
-  function openModal(modal) {
-    modal.style.display = 'flex';
-  }
-  function closeModal(modal) {
-    modal.style.display = 'none';
-  }
-
+  // ------------------------------
   // GCash modal behaviors
+  // ------------------------------
   function openGcashModal() {
-    // populate gcash details
     if (gcashNameEl) gcashNameEl.textContent = gcashDetails.name;
     if (gcashNumberEl) gcashNumberEl.textContent = gcashDetails.number;
     openModal(gcashQrModal);
@@ -165,10 +181,8 @@
     closeModal(gcashQrModal);
   }
 
-  // Copy to clipboard helper
   function copyToClipboard(text) {
     if (!navigator.clipboard) {
-      // fallback
       const el = document.createElement('textarea');
       el.value = text;
       document.body.appendChild(el);
@@ -180,7 +194,9 @@
     return navigator.clipboard.writeText(text);
   }
 
-  // events - payment UI
+  // ------------------------------
+  // Events - payment UI
+  // ------------------------------
   usePaymentBtn?.addEventListener('click', () => {
     populateQuick();
     openModal(paymentModal);
@@ -200,7 +216,6 @@
 
   confirmPaymentBtn?.addEventListener('click', () => {
     if (!selectedPayment) {
-      // nicer feedback using SweetAlert2 if available
       if (window.Swal) {
         Swal.fire({ icon:'info', text:'Please choose a payment method first.' });
       } else {
@@ -209,11 +224,9 @@
       return;
     }
 
-    // If selected GCash, open QR modal; otherwise confirm directly
     if (selectedPayment === 'gcash') {
       closeModal(allPaymentsModal);
       openGcashModal();
-      // leave confirmedPayment to be set by "I have paid" action
       return;
     }
 
@@ -229,7 +242,6 @@
     });
   });
 
-  // initialize checkout state
   (function init(){
     if (!confirmedPayment) {
       if (checkoutBtn) {
@@ -241,7 +253,7 @@
     }
   })();
 
-  // GCash modal event handlers
+  // GCash modal event handlers (copy & cancel)
   closeGcashQrModal?.addEventListener('click', () => closeGcashModal());
   cancelGcashBtn?.addEventListener('click', () => closeGcashModal());
 
@@ -261,51 +273,226 @@
     });
   });
 
+  // ------------------------------
+  // iHavePaid handler (GCash-like receipt)
+  // ------------------------------
   iPaidBtn?.addEventListener('click', () => {
-    // Mark GCash as confirmed payment
     confirmedPayment = 'gcash';
     finalizePaymentSelection();
     closeGcashModal();
 
+    const amount = getTotalAmount();
+    const formattedAmount = formatPHP(amount);
+    const now = new Date();
+    const ts = now.toLocaleString();
+    const receiptId = `UT-${now.getTime().toString().slice(-8)}-${Math.floor(Math.random()*9000+1000)}`;
+
+    const receiptText = [
+      `UniTree Flowers — GCash Receipt`,
+      `Receipt ID: ${receiptId}`,
+      `Amount: ${formattedAmount}`,
+      `Payment Method: GCash`,
+      `Description: Paid`,
+      `Date: ${ts}`
+    ].join('\n');
+
+    // GCash-like styled receipt HTML (no logos used)
+    const receiptHtml = `
+      <div style="font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; color:#0b2f1a;">
+        <!-- Header -->
+        <div style="background:linear-gradient(90deg,#00b04a,#00d66a);padding:14px 16px;border-radius:12px 12px 8px 8px;color:#fff;display:flex;align-items:center;justify-content:space-between;">
+          <div style="font-weight:700;font-size:1rem;">UNITREE- Receipt</div>
+          <div style="font-size:0.86rem;opacity:0.95;">${ts}</div>
+        </div>
+
+        <!-- Receipt card -->
+        <div style="background:#fff;border-radius:10px;padding:14px;margin-top:12px;box-shadow:0 6px 18px rgba(2,46,21,0.06);border:1px solid rgba(2,46,21,0.04);">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <!-- QR-looking square -->
+            <div style="width:78px;height:78px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#f0fff6,#fff);border:1px solid rgba(2,46,21,0.06);">
+              <svg width="56" height="56" viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
+                <rect width="16" height="16" x="0" y="0" fill="#0b3f24"/>
+                <rect width="8" height="8" x="20" y="20" fill="#0b3f24"/>
+                <rect width="10" height="10" x="40" y="0" fill="#0b3f24"/>
+                <rect width="6" height="6" x="40" y="40" fill="#0b3f24"/>
+                <rect width="6" height="6" x="10" y="36" fill="#0b3f24"/>
+              </svg>
+            </div>
+
+            <div style="flex:1;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                  <div style="font-weight:700;font-size:0.98rem;">${gcashDetails.name}</div>
+                  <div style="font-size:0.86rem;color:#3a5b45;margin-top:4px;">${gcashDetails.number}</div>
+                </div>
+
+                <div style="text-align:right;">
+                  <div style="font-size:0.88rem;color:#6b9a7b;margin-bottom:6px;"><span style="background:#e9f8ee;color:#0b5a2f;padding:6px 8px;border-radius:12px;font-weight:600;">Paid</span></div>
+                  <div style="font-weight:800;font-size:1.25rem;color:#0b3f24;">${formattedAmount}</div>
+                </div>
+              </div>
+
+              <div style="margin-top:10px;font-size:0.86rem;color:#556b59;">
+                <div>Receipt ID: <span style="font-family:monospace;">${receiptId}</span></div>
+                <div style="margin-top:6px;">Payment Method: <strong>GCash</strong></div>
+                <div style="margin-top:4px;">Description: <strong>Paid</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer actions -->
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <button id="copyReceiptBtn" class="swal2-confirm swal2-styled" style="flex:1;background:#07b65c;border:none;color:#fff;padding:8px 10px;border-radius:8px;font-weight:700;">Copy Receipt</button>
+          <button id="downloadReceiptBtn" class="swal2-cancel swal2-styled" style="flex:1;background:#f1f5f3;border:1px solid #e6efe6;color:#0b3f24;padding:8px 10px;border-radius:8px;font-weight:700;">Download</button>
+        </div>
+      </div>
+    `;
+
+    // Save last receipt for other scripts
+    window.lastGcashReceipt = {
+      receiptId,
+      amount,
+      formattedAmount,
+      paymentMethod: 'gcash',
+      description: 'Paid',
+      timestamp: now.toISOString(),
+      displayText: receiptText
+    };
+
+    // Show SweetAlert2 receipt modal and attach handlers to the copy & download buttons
     if (window.Swal) {
-      Swal.fire({ icon:'success', title:'Payment noted', text:'Thank you — we will verify your payment shortly.' , timer:1400, showConfirmButton:false});
+      Swal.fire({
+        title: '',
+        html: receiptHtml,
+        showConfirmButton: false,
+        showCloseButton: false,
+        didOpen: () => {
+          const popup = Swal.getPopup();
+          if (!popup) return;
+
+          const copyBtn = popup.querySelector('#copyReceiptBtn');
+          const downloadBtn = popup.querySelector('#downloadReceiptBtn');
+
+          if (copyBtn) {
+            copyBtn.addEventListener('click', async () => {
+              try {
+                await navigator.clipboard.writeText(receiptText);
+                Swal.fire({
+                  toast: true,
+                  position: 'top-end',
+                  icon: 'success',
+                  title: 'Receipt copied to clipboard',
+                  showConfirmButton: false,
+                  timer: 1400
+                });
+              } catch (err) {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Copy failed',
+                  text: 'Could not copy. Please copy manually from the receipt.'
+                });
+              }
+            });
+          }
+
+          if (downloadBtn) {
+            downloadBtn.addEventListener('click', () => {
+              try {
+                // Create a simple text file download (client-side). For a nicer PDF use jsPDF.
+                const blob = new Blob([receiptText], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${receiptId}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+
+                Swal.fire({
+                  toast: true,
+                  position: 'top-end',
+                  icon: 'success',
+                  title: 'Receipt downloaded',
+                  showConfirmButton: false,
+                  timer: 1200
+                });
+              } catch (e) {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Download failed',
+                  text: 'Could not download receipt.'
+                });
+              }
+            });
+          }
+        }
+      });
+    } else {
+      try { navigator.clipboard.writeText(receiptText); } catch(e){}
+      alert(`Payment noted.\n\n${receiptText}`);
+    }
+
+    // update UI label to show paid state
+    if (paymentLabel) {
+      paymentLabel.textContent = `${gcashDetails.label || 'GCash'} (Paid)`;
+      paymentLabel.dataset.id = 'gcash';
+      paymentLabel.dataset.paid = 'true';
+    }
+
+    // add small persistent Paid badge to selectedPaymentDisplay
+    try {
+      const paidBadgeId = 'paidBadgeText';
+      let badge = document.getElementById(paidBadgeId);
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.id = paidBadgeId;
+        badge.style.background = '#e9f7ef';
+        badge.style.color = '#0f5132';
+        badge.style.padding = '4px 8px';
+        badge.style.borderRadius = '8px';
+        badge.style.fontSize = '0.85rem';
+        badge.style.marginLeft = '10px';
+        badge.textContent = 'Paid';
+        const container = document.getElementById('selectedPaymentDisplay');
+        if (container) {
+          container.appendChild(badge);
+        }
+      } else {
+        badge.textContent = 'Paid';
+      }
+    } catch(e) {
+      // ignore failures
     }
   });
 
   // ========================================
-  // 🆕 EXPOSE PAYMENT METHOD FOR CART.JS
+  // EXPOSE PAYMENT METHOD FOR CART.JS
   // ========================================
-  
-  // Function to get confirmed payment method (for order creation)
   function getConfirmedPaymentMethod() {
-    // Return confirmed payment, default to 'cod' if none selected
     return confirmedPayment || 'cod';
   }
-  
-  // Function to get payment label for display
   function getConfirmedPaymentLabel() {
     const p = paymentOptions.find(x => x.id === (confirmedPayment || 'cod'));
     return p ? p.label : 'Cash on Delivery';
   }
-  
-  // Check if payment method is selected
   function isPaymentMethodSelected() {
     return confirmedPayment !== null;
   }
 
   // ========================================
-  // GLOBAL EXPOSURE FOR USE IN OTHER SCRIPTS
+  // GLOBAL EXPOSURE
   // ========================================
-  
   window.getConfirmedPaymentMethod = getConfirmedPaymentMethod;
   window.getConfirmedPaymentLabel = getConfirmedPaymentLabel;
   window.isPaymentMethodSelected = isPaymentMethodSelected;
 
-  // expose for debugging if needed
   window._paymentUI = {
     getConfirmed: () => confirmedPayment,
     getSelected: () => selectedPayment,
     openPaymentModal: () => { populateQuick(); openModal(paymentModal); },
     openGcash: () => openGcashModal()
   };
+
 })();

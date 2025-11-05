@@ -537,7 +537,7 @@
             });
           }
         },
-        columns: [
+                columns: [
           { data: 'order_id' },
           { 
             data: null,
@@ -549,7 +549,6 @@
             data: null,
             render: function(data) {
               let productName = data.name || data.product_name || 'N/A';
-              // 🎟️ Add discount badge if present
               if (data.discount_code) {
                 productName += ` <span class="discount-badge"><i class="fas fa-tag"></i> ${data.discount_code}</span>`;
               }
@@ -564,18 +563,35 @@
               return '₱' + itemTotal.toLocaleString('en-PH', {minimumFractionDigits: 2});
             }
           },
-          {
-            data: 'status',
-            render: function(data) {
-              const statusClasses = {
-                'pending': 'status-pending',
-                'shipped': 'status-shipped',
-                'received': 'status-received',
-                'cancelled': 'status-cancelled'
-              };
-              return `<span class="status-badge ${statusClasses[data]}">${data}</span>`;
-            }
-          },
+{
+  data: null,
+  render: function(data) {
+    const status = data.status || 'unknown';
+    const statusClasses = {
+      'pending': 'status-pending',
+      'shipped': 'status-shipped',
+      'received': 'status-received',
+      'cancelled': 'status-cancelled'
+    };
+    const cls = statusClasses[status] || '';
+
+    if (status === 'cancelled') {
+      const dateAttr = data.cancellation_date ? `data-cancel-date="${data.cancellation_date}"` : '';
+      return `
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="status-badge ${cls}">CANCELLED</span>
+          <button class="action-btn show-reason-btn" data-order-id="${data.order_id}" ${dateAttr}
+            style="background:transparent;border:1px solid rgba(0,0,0,0.06);color:#fff;padding:6px 8px;border-radius:8px;font-weight:600;">
+            <i class="fas fa-info-circle"></i> View Reason
+          </button>
+        </div>
+      `;
+    } else {
+      return `<span class="status-badge ${cls}">${status}</span>`;
+    }
+  }
+},
+
           {
             data: 'date_placed',
             render: function(data) {
@@ -586,24 +602,31 @@
               });
             }
           },
-          {
-            data: null,
-            render: function(data) {
-              if (data.status === 'pending') {
-                return `<button class="action-btn update-status-btn" data-order-id="${data.order_id}" data-order-item-id="${data.order_item_id}">
-                  <i class="fas fa-truck"></i> Ship Order
-                </button>`;
-              } else if (data.status === 'shipped') {
-                return `<button class="action-btn update-status-btn" data-order-id="${data.order_id}" data-order-item-id="${data.order_item_id}">
-                  <i class="fas fa-edit"></i> Update Status
-                </button>`;
-              } else {
-                return `<button class="action-btn" disabled>
-                  <i class="fas fa-check"></i> ${data.status}
-                </button>`;
-              }
-            }
-          }
+          // === ACTION column (replace existing action column) ===
+{
+  data: null,
+  render: function(data) {
+    // Action buttons: show "Ship/Update" for active statuses; if cancelled, offer View Reason (only order-id)
+    if (data.status === 'pending') {
+      return `<button class="action-btn update-status-btn" data-order-id="${data.order_id}" data-order-item-id="${data.order_item_id}">
+        <i class="fas fa-truck"></i> Ship Order
+      </button>`;
+    } else if (data.status === 'shipped') {
+      return `<button class="action-btn update-status-btn" data-order-id="${data.order_id}" data-order-item-id="${data.order_item_id}">
+        <i class="fas fa-edit"></i> Update Status
+      </button>`;
+    } else if (data.status === 'cancelled') {
+      return `<button class="action-btn view-reason-btn" data-order-id="${data.order_id}">
+        <i class="fas fa-eye"></i> View Reason
+      </button>`;
+    } else {
+      return `<button class="action-btn" disabled>
+        <i class="fas fa-check"></i> ${data.status}
+      </button>`;
+    }
+  }
+}
+
         ],
         order: [[6, 'desc']],
         pageLength: 10,
@@ -617,6 +640,101 @@
         currentOrderId = orderId;
         showUpdateModal(rowData);
       });
+      
+          // Delegated handler for the Status column "View Reason" button
+    // Delegated handler — read reason from DataTable row instead of element attributes
+$('#sellerOrdersTable').on('click', '.show-reason-btn, .view-reason-btn', function(e) {
+  e.preventDefault();
+  e.stopPropagation();
+
+  const $btn = $(this);
+  const orderId = $btn.data('order-id');
+
+  // Try to get row data using the button's row
+  let rowData = ordersTable.row($btn.closest('tr')).data();
+
+  // Fallback: find row by order_id in the full table data (if row() didn't resolve)
+  if (!rowData) {
+    const all = ordersTable.rows().data().toArray();
+    rowData = all.find(r => String(r.order_id) === String(orderId));
+  }
+
+  const reason = (rowData && rowData.cancellation_reason) ? rowData.cancellation_reason : 'No reason provided';
+  const cancelDate = (rowData && rowData.cancellation_date) ? rowData.cancellation_date : null;
+
+  showCancellationReasonModal({ orderId, reason, cancelDate });
+});
+
+
+    /**
+     * Show cancellation reason modal with copy button
+     * @param {Object} opts { orderId, reason, cancelDate }
+     */
+    function showCancellationReasonModal(opts) {
+      const orderId = opts.orderId || 'Unknown';
+      const reason = opts.reason || 'No reason provided';
+      const cancelDate = opts.cancelDate ? new Date(opts.cancelDate).toLocaleString() : null;
+
+      const html = `
+        <div style="text-align:left;color:#111;">
+          <div style="margin-bottom:8px;font-weight:700;">Order #${orderId}</div>
+          ${cancelDate ? `<div style="margin-bottom:8px;color:#666;">Cancelled on: ${cancelDate}</div>` : ''}
+          <div style="background:#fff;padding:12px;border-radius:8px;border:1px solid #e9ecef;">
+            <div style="font-size:0.95rem;color:#222;white-space:pre-wrap;" id="cancelReasonText">${escapeHtml(reason)}</div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:12px;">
+            <button id="copyCancelReason" class="swal2-confirm swal2-styled" style="flex:1;">Copy Reason</button>
+            <button id="closeCancelReason" class="swal2-cancel swal2-styled" style="flex:1;">Close</button>
+          </div>
+        </div>
+      `;
+
+      if (window.Swal) {
+        Swal.fire({
+          title: 'Cancellation Reason',
+          html: html,
+          showConfirmButton: false,
+          didOpen: () => {
+            const popup = Swal.getPopup();
+            if (!popup) return;
+            const copyBtn = popup.querySelector('#copyCancelReason');
+            const closeBtn = popup.querySelector('#closeCancelReason');
+            if (copyBtn) {
+              copyBtn.addEventListener('click', async () => {
+                try {
+                  await navigator.clipboard.writeText(reason);
+                  Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Reason copied', showConfirmButton: false, timer: 1200 });
+                } catch (err) {
+                  Swal.fire({ icon: 'error', title: 'Copy failed', text: 'Could not copy to clipboard.' });
+                }
+              });
+            }
+            if (closeBtn) {
+              closeBtn.addEventListener('click', () => Swal.close());
+            }
+          }
+        });
+      } else {
+        alert(`Order #${orderId}\n\nReason:\n${reason}`);
+      }
+    }
+
+    // small helper escape to prevent HTML injection when inserting into innerHTML
+    function escapeHtml(unsafe) {
+      return String(unsafe || '').replace(/[&<>"'`=\/]/g, function (s) {
+        return ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;',
+          '/': '&#x2F;',
+          '`': '&#x60;',
+          '=': '&#x3D;'
+        })[s];
+      });
+    }
+
 
       $('#confirmUpdateBtn').click(function() {
         updateOrderStatus();

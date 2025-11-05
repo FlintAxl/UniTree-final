@@ -257,47 +257,150 @@ exports.getCustomerOrders = (req, res) => {
     });
 };
 
-// ================= CANCEL ORDER =================
+// ================= CANCEL ORDER (with required cancellation reason + transaction) =================
 exports.cancelOrder = (req, res) => {
-    const { order_id } = req.body;
+  const { order_id, reason } = req.body;
 
-    const getItemsSql = 'SELECT product_id, quantity FROM order_items WHERE order_id = ?';
+  if (!order_id) {
+    return res.status(400).json({ error: 'order_id is required' });
+  }
 
-    connection.query(getItemsSql, [order_id], (err, itemRows) => {
-        if (err) return res.status(500).json({ error: 'Failed to fetch order items', details: err });
+  // reason must be provided and non-empty (trimmed)
+  if (!reason || String(reason).trim().length === 0) {
+    return res.status(400).json({ error: 'Cancellation reason is required' });
+  }
 
-        if (itemRows.length === 0) {
-            return res.status(404).json({ error: 'Order not found or has no items' });
+  // begin transaction
+  connection.beginTransaction((txErr) => {
+    if (txErr) return res.status(500).json({ error: 'Failed to start transaction', details: txErr });
+
+    // Check order exists and is in pending status, and fetch its items
+    const getOrderSql = 'SELECT status FROM orders WHERE order_id = ? FOR UPDATE';
+    connection.query(getOrderSql, [order_id], (errOrder, orderRows) => {
+      if (errOrder) {
+        return connection.rollback(() => {
+          return res.status(500).json({ error: 'Failed to fetch order', details: errOrder });
+        });
+      }
+
+      if (!orderRows || orderRows.length === 0) {
+        return connection.rollback(() => {
+          return res.status(404).json({ error: 'Order not found' });
+        });
+      }
+
+      const currentStatus = orderRows[0].status;
+      if (currentStatus !== 'pending') {
+        return connection.rollback(() => {
+          return res.status(400).json({ error: 'Only pending orders can be cancelled' });
+        });
+      }
+
+      // fetch items for the order
+      const getItemsSql = 'SELECT product_id, quantity FROM order_items WHERE order_id = ?';
+      connection.query(getItemsSql, [order_id], (errItems, itemRows) => {
+        if (errItems) {
+          return connection.rollback(() => {
+            return res.status(500).json({ error: 'Failed to fetch order items', details: errItems });
+          });
         }
 
-        const rollbackPromises = itemRows.map(item => {
-            return new Promise((resolve, reject) => {
-                const rollbackSql = 'UPDATE products SET stock = stock + ? WHERE product_id = ?';
-                connection.query(rollbackSql, [item.quantity, item.product_id], (err2) => {
-                    if (err2) reject(err2);
-                    else resolve();
+        // If no items found, still allow cancellation but warn
+        if (!itemRows || itemRows.length === 0) {
+          // proceed to update order status and reason
+          const updateOrderSql = `
+            UPDATE orders
+            SET status = 'cancelled',
+                cancellation_reason = ?,
+                cancellation_date = NOW()
+            WHERE order_id = ? AND status = 'pending'
+          `;
+          connection.query(updateOrderSql, [String(reason).trim(), order_id], (errUpd, resultUpd) => {
+            if (errUpd) {
+              return connection.rollback(() => {
+                return res.status(500).json({ error: 'Failed to cancel order', details: errUpd });
+              });
+            }
+
+            if (resultUpd.affectedRows === 0) {
+              return connection.rollback(() => {
+                return res.status(400).json({ error: 'Order not found or not in pending status' });
+              });
+            }
+
+            // commit
+            connection.commit((commitErr) => {
+              if (commitErr) {
+                return connection.rollback(() => {
+                  return res.status(500).json({ error: 'Transaction commit failed', details: commitErr });
                 });
+              }
+              return res.status(200).json({ success: true, message: 'Order cancelled (no items) and reason saved' });
             });
+          });
+
+          return;
+        }
+
+        // Build queries to restore stock for each item
+        // Use Promise chain to update stock sequentially (or use Promise.all with callbacks)
+        const stockUpdates = itemRows.map(item => {
+          return new Promise((resolve, reject) => {
+            const rollbackSql = 'UPDATE products SET stock = stock + ? WHERE product_id = ?';
+            connection.query(rollbackSql, [item.quantity, item.product_id], (errStock) => {
+              if (errStock) return reject(errStock);
+              return resolve();
+            });
+          });
         });
 
-        Promise.all(rollbackPromises)
-            .then(() => {
-                const updateStatusSql = "UPDATE orders SET status = 'cancelled' WHERE order_id = ? AND status = 'pending'";
+        Promise.all(stockUpdates)
+          .then(() => {
+            // After stock rolled back, update order status + reason + cancellation_date
+            const updateStatusSql = `
+              UPDATE orders
+              SET status = 'cancelled',
+                  cancellation_reason = ?,
+                  cancellation_date = NOW()
+              WHERE order_id = ? AND status = 'pending'
+            `;
 
-                connection.query(updateStatusSql, [order_id], (err3, result) => {
-                    if (err3) return res.status(500).json({ error: 'Failed to cancel order', details: err3 });
-
-                    if (result.affectedRows === 0) {
-                        return res.status(400).json({ error: 'Order not found or not in pending status' });
-                    }
-
-                    return res.status(200).json({ success: true, message: 'Order cancelled and stock rolled back' });
+            connection.query(updateStatusSql, [String(reason).trim(), order_id], (errUpdate, result) => {
+              if (errUpdate) {
+                return connection.rollback(() => {
+                  return res.status(500).json({ error: 'Failed to cancel order', details: errUpdate });
                 });
-            })
-            .catch(err4 => {
-                return res.status(500).json({ error: 'Stock rollback failed', details: err4 });
+              }
+
+              if (result.affectedRows === 0) {
+                return connection.rollback(() => {
+                  return res.status(400).json({ error: 'Order not found or not in pending status' });
+                });
+              }
+
+              // commit transaction
+              connection.commit((commitErr) => {
+                if (commitErr) {
+                  return connection.rollback(() => {
+                    return res.status(500).json({ error: 'Transaction commit failed', details: commitErr });
+                  });
+                }
+
+                return res.status(200).json({
+                  success: true,
+                  message: 'Order cancelled, stock rolled back and cancellation reason saved'
+                });
+              });
             });
-    });
+          })
+          .catch(stockErr => {
+            return connection.rollback(() => {
+              return res.status(500).json({ error: 'Stock rollback failed', details: stockErr });
+            });
+          });
+      }); // end getItems query
+    }); // end getOrder query
+  }); // end beginTransaction
 };
 
 // ================= ADMIN: GET ALL ORDERS =================
@@ -388,6 +491,7 @@ function finalizeStatusUpdate(order_id, status, res) {
 }
 
 // ================= GET SELLER ORDERS =================
+// ================= GET SELLER ORDERS =================
 exports.getSellerOrders = (req, res) => {
     const { sellerId } = req.params;
 
@@ -403,6 +507,8 @@ exports.getSellerOrders = (req, res) => {
             o.discount_amount,
             o.discount_code,
             o.reward_id,
+            o.cancellation_reason,
+            o.cancellation_date,
             oi.order_item_id,
             oi.quantity,
             oi.price,
@@ -428,14 +534,15 @@ exports.getSellerOrders = (req, res) => {
             });
         }
 
-        console.log('✅ Seller orders fetched');
-
+        // results already include cancellation_reason & cancellation_date,
+        // pass them through to the frontend unchanged.
         res.json({
             success: true,
             orders: results
         });
     });
 };
+
 
 // ================= UPDATE ORDER STATUS (Seller) =================
 exports.updateOrderStatusSeller = (req, res) => {

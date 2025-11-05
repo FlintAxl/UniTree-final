@@ -56,30 +56,74 @@ $(document).ready(function () {
 });
 
 function cancelOrder(orderId) {
-    Swal.fire({
-        title: 'Cancel this order?',
-        text: "This action cannot be undone.",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, cancel it'
-    }).then(result => {
-        if (result.isConfirmed) {
-            $.ajax({
-                method: 'PATCH',
-                url: `${url}api/v1/cancel-order`,
-                contentType: 'application/json',
-                data: JSON.stringify({ order_id: orderId }),
-                success: function () {
-                    Swal.fire('Cancelled', 'Your order was cancelled', 'success');
-                    $('#customerOrdersTable').DataTable().ajax.reload();
-                },
-                error: function () {
-                    Swal.fire('Error', 'Failed to cancel order', 'error');
-                }
-            });
+  Swal.fire({
+    title: 'Cancel this order?',
+    text: "Please provide a reason for cancelling this order. This is required.",
+    icon: 'warning',
+    input: 'textarea',
+    inputLabel: 'Reason for cancellation',
+    inputPlaceholder: 'Type your reason here...',
+    inputAttributes: {
+      'aria-label': 'Reason for cancellation',
+      maxlength: 500,
+      rows: 4
+    },
+    inputValidator: (value) => {
+      if (!value || !value.trim()) {
+        return 'A cancellation reason is required.';
+      }
+      if (value.trim().length < 5) {
+        return 'Please provide a more detailed reason (at least 5 characters).';
+      }
+      return null;
+    },
+    showCancelButton: true,
+    confirmButtonText: 'Cancel Order',
+    confirmButtonColor: '#d33'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      const reason = (result.value || '').trim();
+
+      // show a small loading modal while calling API
+      Swal.fire({
+        title: 'Cancelling...',
+        didOpen: () => {
+          Swal.showLoading();
+        },
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false
+      });
+
+      $.ajax({
+        method: 'PATCH',
+        url: `${url}api/v1/cancel-order`,
+        contentType: 'application/json',
+        data: JSON.stringify({ order_id: orderId, reason: reason }),
+        success: function (resp) {
+          Swal.close();
+          Swal.fire('Cancelled', resp.message || 'Your order was cancelled', 'success');
+          $('#customerOrdersTable').DataTable().ajax.reload();
+        },
+        error: function (xhr) {
+          Swal.close();
+          let text = 'Failed to cancel order';
+          if (xhr && xhr.responseJSON && xhr.responseJSON.error) {
+            text = xhr.responseJSON.error;
+          } else if (xhr && xhr.responseText) {
+            try {
+              const j = JSON.parse(xhr.responseText);
+              if (j && j.error) text = j.error;
+            } catch (e) { /* ignore parse error */ }
+          }
+
+          Swal.fire('Error', text, 'error');
         }
-    });
+      });
+    }
+  });
 }
+
 
 function markAsReceived(orderId) {
     Swal.fire({
