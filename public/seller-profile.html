@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller Profile - UniTree</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+    <link rel="stylesheet" href="css/seller-profile.css">
+</head>
+
+<body>
+    <div id="header"></div>
+
+    <div class="seller-header">
+        <div class="seller-info-container">
+            <img id="sellerAvatar" class="seller-avatar" src="https://via.placeholder.com/120" alt="Seller Avatar">
+            <div class="seller-details">
+                <h1 id="sellerName">Loading...</h1>
+                <p id="sellerEmail"></p>
+                <div class="seller-meta">
+                    <span>
+                        <i class="fas fa-star"></i>
+                        <span id="sellerRating">0.0</span> Rating
+                    </span>
+                    <span>
+                        <i class="fas fa-box"></i>
+                        <span id="productCount">0</span> Products
+                    </span>
+                    <span>
+                        <i class="fas fa-calendar"></i>
+                        Joined <span id="joinDate">2025</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="products-section">
+        <div class="section-header">
+            <h2 class="section-title">Products from this Seller</h2>
+        </div>
+        <div id="productsGrid" class="products-grid">
+            <div class="loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading seller information...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/user.js"></script>
+    <script src="js/cart.js"></script>
+    <script>
+        // Load header
+        $('#header').load('header.html');
+
+        // Get seller ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const sellerId = urlParams.get('id');
+
+        console.log('Seller ID from URL:', sellerId);
+
+        if (!sellerId) {
+            showError('No seller ID provided', 'Please provide a valid seller ID in the URL.');
+        } else {
+            loadSellerProfile();
+        }
+
+        // Fetch seller information from products
+        async function loadSellerProfile() {
+            try {
+                console.log('Loading seller profile for ID:', sellerId);
+
+                document.getElementById('productsGrid').innerHTML = `
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Loading seller information...</p>
+                    </div>
+                `;
+
+                // all products
+                const productsRes = await fetch("/api/v1/products");
+                const productsData = await productsRes.json();
+                const products = Array.isArray(productsData?.data) ? productsData.data : [];
+
+                console.log("Products fetched:", products.length);
+
+                if (products.length === 0) {
+                    throw new Error("No products found in the system");
+                }
+
+                // Filter products for this specific seller
+                const sellerProducts = products.filter(p => String(p.seller_id) === String(sellerId));
+
+                console.log(`Products from seller ${sellerId}:`, sellerProducts.length);
+
+                if (sellerProducts.length === 0) {
+                    throw new Error("This seller has no products");
+                }
+
+                // Get seller info from first product
+                const firstProduct = sellerProducts[0];
+                const sellerName = firstProduct.seller_name || firstProduct.seller_username || `Seller ${sellerId}`;
+
+                // Create seller object
+                const seller = {
+                    id: sellerId,
+                    name: sellerName,
+                    username: sellerName.toLowerCase().replace(/\s+/g, ''),
+                    avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(sellerName)}&background=16a34a&color=fff&size=200&bold=true`,
+                    rating: (Math.random() * 1 + 4).toFixed(1), // Random rating between 4.0-5.0
+                    products_count: sellerProducts.length,
+                    email: `${sellerName.toLowerCase().replace(/\s+/g, '')}@gmail.com`,
+                    role: 'seller'
+                };
+
+                console.log("Seller object created:", seller);
+
+                // Display seller info
+                displaySellerInfo(seller, sellerProducts);
+
+                // Display products
+                displayProducts(sellerProducts);
+
+            } catch (error) {
+                console.error("Error loading seller profile:", error);
+                showError('Failed to load seller', error.message);
+            }
+        }
+
+        // Display seller information
+        function displaySellerInfo(seller, products) {
+            console.log('Displaying seller info:', seller);
+            document.getElementById('sellerName').textContent = `${seller.name}'s Store`;
+            document.getElementById('sellerEmail').textContent = `${seller.email}`;
+            document.getElementById('sellerAvatar').src = seller.avatar;
+            document.getElementById('productCount').textContent = seller.products_count;
+            document.getElementById('sellerRating').textContent = seller.rating;
+            document.getElementById('joinDate').textContent = new Date().getFullYear();
+        }
+
+        // Display products in grid
+        function displayProducts(products) {
+            const grid = document.getElementById('productsGrid');
+
+            if (products.length === 0) {
+                grid.innerHTML = `
+                    <div class="message-box">
+                        <i class="fas fa-box-open"></i>
+                        <h3>No Products Yet</h3>
+                        <p>This seller hasn't listed any products.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = '';
+
+            products.forEach(product => {
+                const card = createProductCard(product);
+                grid.appendChild(card);
+            });
+        }
+
+        // Create product card 
+        function createProductCard(product) {
+            const productId = product.product_id || product.id || '';
+            const title = product.name || product.title || 'Untitled Product';
+            const price = parseFloat(product.price || 0).toFixed(2);
+            const rating = product.rating || (4.0 + Math.random() * 1).toFixed(1);
+
+            // Get first image
+            let firstImage = 'https://via.placeholder.com/300x200?text=No+Image';
+            if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+                firstImage = product.images[0];
+            } else if (product.image) {
+                firstImage = product.image;
+            }
+
+            const card = document.createElement('div');
+            card.className = 'product-card';
+            card.style.cursor = 'pointer'; // Add pointer cursor
+            card.onclick = () => viewProduct(productId); // Make entire card clickable
+            card.innerHTML = `
+                <div class="product-image-container">
+                    <img src="${firstImage}" 
+                         alt="${title}"
+                         onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
+                </div>
+                <div class="product-info">
+                    <h3 class="product-title" title="${title}">${title}</h3>
+                    <div class="product-price-rating">
+                        <span class="product-price">$${price}</span>
+                        <div class="product-rating">
+                            <i class="fas fa-star"></i>
+                            <span>${rating}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // View product details
+        function viewProduct(productId) {
+            window.location.href = `product-details.html?id=${productId}`;
+        }
+
+        // Add to cart function
+        function addToCart(productId, title, price, image) {
+            // Check if user is logged in
+            const token = sessionStorage.getItem('access_token');
+            if (!token) {
+                showError('Login Required', 'Please login to add items to cart');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+                return;
+            }
+
+            // Create product object to add to cart
+            const product = {
+                id: productId,
+                name: title,
+                price: price,
+                image: image
+            };
+
+            // Add to cart using the cart.js functionality
+            const cart = getCart();
+            const existingItemIndex = cart.findIndex(item => item.id == productId);
+
+            if (existingItemIndex > -1) {
+                cart[existingItemIndex].quantity += 1;
+            } else {
+                cart.push({
+                    id: product.id,
+                    name: product.name,
+                    price: parseFloat(product.price),
+                    image: product.image,
+                    quantity: 1
+                });
+            }
+
+            // Save cart and update UI
+            saveCart(cart);
+            updateCartCount();
+            showToast(`${product.name} added to cart!`, 'success');
+        }
+
+        // Show error message
+        function showError(title, message) {
+            document.getElementById('productsGrid').innerHTML = `
+                <div class="message-box">
+                    <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>
+                    <h3>${title}</h3>
+                    <p>${message}</p>
+                </div>
+            `;
+
+            Swal.fire({
+                icon: 'error',
+                title: title,
+                text: message,
+                confirmButtonColor: '#667eea',
+                confirmButtonText: 'Go Back'
+            }).then(() => {
+                window.location.href = 'index.html';
+            });
+        }
+    </script>
+</body>
+
+</html>

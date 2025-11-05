@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Products - UniTree</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Bootstrap 4 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" crossorigin="anonymous" />
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap4.min.css">
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.16.1/sweetalert2.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <!-- Bootstrap 4 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"></script>
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap4.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.bootstrap4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.16.1/sweetalert2.min.js"></script>
+    <!-- Config and User JS -->
+    <script src="js/config.js"></script>
+    <script src="js/user.js"></script>
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            min-height: 100vh;
+            color: white;
+        }
+
+        .container-fluid {
+            padding: 120px 20px 40px;
+        }
+
+        
+
+        .table-container {
+            background: rgba(74, 222, 128, 0.1);
+            padding: 2rem;
+            border-radius: 25px;
+            border: 1px solid rgba(74, 222, 128, 0.3);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+            margin-top: 10px;
+        }
+
+        .table {
+            color: white;
+            background: transparent;
+        }
+
+        .table thead th {
+            background: rgba(74, 222, 128, 0.2);
+            border-color: rgba(74, 222, 128, 0.3);
+            color: #4ade80;
+        }
+
+        .table td, .table th {
+            border-color: rgba(74, 222, 128, 0.2);
+        }
+
+        .btn-info {
+            background: linear-gradient(45deg, #4ade80, #22c55e);
+            border: none;
+            border-radius: 8px;
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #ef4444, #dc2626);
+            border: none;
+            border-radius: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #4ade80, #22c55e);
+            border: none;
+            border-radius: 8px;
+        }
+
+        .dataTables_wrapper .dataTables_filter input {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(74, 222, 128, 0.3);
+            color: white;
+            border-radius: 10px;
+            padding: 5px 10px;
+        }
+
+        .dataTables_wrapper .dataTables_length select {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(74, 222, 128, 0.3);
+            color: white;
+            border-radius: 5px;
+            padding: 3px;
+        }
+
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_paginate {
+            color: rgba(255,255,255,0.8);
+        }
+
+        .page-link {
+            background-color: rgba(74, 222, 128, 0.1);
+            border-color: rgba(74, 222, 128, 0.3);
+            color: #4ade80;
+        }
+
+        .page-link:hover {
+            background-color: rgba(74, 222, 128, 0.2);
+            border-color: #4ade80;
+            color: white;
+        }
+
+        .page-item.active .page-link {
+            background-color: #4ade80;
+            border-color: #4ade80;
+        }
+
+        .modal-content {
+            background: rgba(74, 222, 128, 0.1);
+            border: 1px solid rgba(74, 222, 128, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid rgba(74, 222, 128, 0.3);
+        }
+
+        .modal-title {
+            color: #4ade80;
+        }
+
+        .form-control {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(74, 222, 128, 0.3);
+            color: white;
+        }
+
+        .form-control:focus {
+            background: rgba(255,255,255,0.15);
+            border-color: #4ade80;
+            box-shadow: 0 0 0 0.2rem rgba(74, 222, 128, 0.25);
+            color: white;
+        }
+
+        label {
+            color: #4ade80;
+        }
+
+        select.form-control option {
+            background-color: #2c5364;
+            color: white;
+        }
+
+        #header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .back-btn {
+            margin-bottom: 2rem;
+        }
+
+        .back-btn a {
+            background: rgba(74, 222, 128, 0.1);
+            border: 1px solid rgba(74, 222, 128, 0.3);
+            color: #4ade80;
+            padding: 10px 20px;
+            border-radius: 15px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn a:hover {
+            background: rgba(74, 222, 128, 0.2);
+            color: white;
+            text-decoration: none;
+        }
+
+        /* Image Gallery Styles */
+        .product-images {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 3px;
+        }
+
+        .product-image {
+            width: 45px;
+            height: 45px;
+            object-fit: cover;
+            border-radius: 5px;
+            border: 1px solid rgba(74, 222, 128, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .product-image:hover {
+            transform: scale(1.1);
+            border-color: #4ade80;
+        }
+
+        .no-image-placeholder {
+            width: 45px;
+            height: 45px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(74, 222, 128, 0.3);
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+            font-size: 10px;
+        }
+
+        /* Image Modal Styles */
+        .image-modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+        }
+
+        .image-modal-content {
+            position: relative;
+            margin: auto;
+            padding: 0;
+            width: 90%;
+            max-width: 700px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .image-modal img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+
+        .image-modal-close {
+            position: absolute;
+            top: 10px;
+            right: 25px;
+            color: white;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .image-modal-close:hover {
+            color: #4ade80;
+        }
+
+        .image-modal-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 30px;
+            color: white;
+            cursor: pointer;
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 5px;
+            user-select: none;
+        }
+
+        .image-modal-nav:hover {
+            background: rgba(74, 222, 128, 0.5);
+        }
+
+        .image-modal-prev {
+            left: 20px;
+        }
+
+        .image-modal-next {
+            right: 20px;
+        }
+    </style>
+</head>
+<body>
+    
+   
+    
+    <div class="container-fluid">
+        <div class="back-btn">
+            <a href="seller.html">← Back to Dashboard</a>
+        </div>
+        
+        <h1 class="page-header">My Products</h1>
+        
+        <div class="table-container">
+            <table id="sellerProductsTable" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Images</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Description</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+
+    <!-- Edit Product Modal -->
+    <div class="modal fade" id="updateSellerProductModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Product</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span style="color: #4ade80;">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="updateSellerProductForm">
+                        <input type="hidden" id="us_productId">
+                        
+                        <div class="form-group">
+                            <label for="us_name">Product Name *</label>
+                            <input type="text" id="us_name" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="us_description">Description *</label>
+                            <textarea id="us_description" class="form-control" rows="4" required></textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="us_price">Price (₱) *</label>
+                                    <input type="number" id="us_price" class="form-control" step="0.01" min="0" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="us_stock">Stock Quantity *</label>
+                                    <input type="number" id="us_stock" class="form-control" min="0" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="us_category_id">Category</label>
+                            <select id="us_category_id" class="form-control">
+                                <option value="">Loading categories...</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="sellerProductUpdate">Update Product</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div id="imageModal" class="image-modal">
+        <div class="image-modal-content">
+            <span class="image-modal-close">&times;</span>
+            <span class="image-modal-nav image-modal-prev">&#10094;</span>
+            <img id="modalImage" src="" alt="Product Image">
+            <span class="image-modal-nav image-modal-next">&#10095;</span>
+        </div>
+    </div>
+
+    <script>
+        // Load header content
+        fetch("/header.html")
+            .then(res => res.text())
+            .then(data => {
+                document.getElementById("header").innerHTML = data;
+            });
+
+        let currentImages = [];
+        let currentImageIndex = 0;
+
+        $(document).ready(function () {
+            const token = sessionStorage.getItem('access_token');
+            const sellerId = sessionStorage.getItem('userId');
+            const userRole = sessionStorage.getItem('role');
+
+            // Check if user is a seller
+            if (userRole !== 'seller' || !sellerId) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Access Denied',
+                    text: 'Only sellers can access this page.'
+                }).then(() => {
+                    window.location.href = 'index.html';
+                });
+                return;
+            }
+
+            // Initialize DataTable for seller's products
+            const table = $('#sellerProductsTable').DataTable({
+                ajax: {
+                    url: `${url}api/v1/products/seller/${sellerId}`,
+                    dataSrc: "products",
+                    headers: { "Authorization": `Bearer ${token}` }
+                },
+                dom: 'Bfrtip',
+                buttons: [
+                    'pdf', 'excel',
+                    {
+                        text: 'Add Product',
+                        className: 'btn btn-primary',
+                        action: function () {
+                            window.location.href = 'add-product.html';
+                        }
+                    }
+                ],
+                columns: [
+                    { data: 'product_id' },
+                    {
+                        data: 'images',
+                        render: function (images, type, row) {
+                            if (!images || images.length === 0) {
+                                return '<div class="no-image-placeholder">No image</div>';
+                            }
+                            
+                            const imageElements = images.slice(0, 3).map((img, index) => 
+                                `<img src="${url}${img}" class="product-image" 
+                                      onclick="openImageModal(${row.product_id}, ${index})" 
+                                      alt="Product ${index + 1}">`
+                            ).join('');
+                            
+                            const moreCount = images.length > 3 ? `<div style="font-size: 10px; color: #4ade80;">+${images.length - 3} more</div>` : '';
+                            
+                            return `<div class="product-images">${imageElements}${moreCount}</div>`;
+                        }
+                    },
+                    { 
+                        data: 'name',
+                        render: function(data) {
+                            return data.length > 30 ? data.substring(0, 30) + '...' : data;
+                        }
+                    },
+                    { data: 'category_name', defaultContent: '<span style="color: #888;">No Category</span>' },
+                    { 
+                        data: 'description',
+                        render: function(data) {
+                            return data.length > 50 ? data.substring(0, 50) + '...' : data;
+                        }
+                    },
+                    { 
+                        data: 'price',
+                        render: function(data) {
+                            return `₱${parseFloat(data).toFixed(2)}`;
+                        }
+                    },
+                    { data: 'stock' },
+                    {
+                        data: 'created_at',
+                        render: function(data) {
+                            return new Date(data).toLocaleDateString();
+                        }
+                    },
+                    {
+                        data: null,
+                        render: function (data) {
+                            return `
+                                <button class="btn btn-sm btn-info editSellerProductBtn" data-id="${data.product_id}">Edit</button>
+                                <button class="btn btn-sm btn-danger deleteSellerProductBtn" data-id="${data.product_id}">Delete</button>
+                            `;
+                        }
+                    }
+                ],
+            });
+
+            // Load categories for the edit modal
+            loadSellerCategories();
+
+            // ================= EDIT SELLER PRODUCT (open modal) =================
+            $(document).on('click', '.editSellerProductBtn', function () {
+                const id = $(this).data('id');
+
+                $.ajax({
+                    method: "GET",
+                    url: `${url}api/v1/products/${id}`,
+                    headers: { Authorization: `Bearer ${token}` },
+                    success: function (data) {
+                        if (data.success && data.product) {
+                            const product = data.product;
+                            
+                            $('#us_productId').val(product.product_id);
+                            $('#us_name').val(product.name);
+                            $('#us_description').val(product.description);
+                            $('#us_price').val(product.price);
+                            $('#us_stock').val(product.stock);
+                            $('#us_category_id').val(product.category_id || '');
+
+                            $('#updateSellerProductModal').modal('show');
+                        } else {
+                            Swal.fire({ 
+                                icon: "error", 
+                                text: "Failed to fetch product details." 
+                            });
+                        }
+                    },
+                    error: function () {
+                        Swal.fire({ 
+                            icon: "error", 
+                            text: "Failed to fetch product details." 
+                        });
+                    }
+                });
+            });
+
+            // ================= UPDATE SELLER PRODUCT =================
+            $("#sellerProductUpdate").on('click', function (e) {
+                e.preventDefault();
+                const id = $('#us_productId').val();
+                
+                const name = $('#us_name').val().trim();
+                const description = $('#us_description').val().trim();
+                const price = $('#us_price').val();
+                const stock = $('#us_stock').val();
+                const category_id = $('#us_category_id').val();
+
+                if (!name || !description || !price || !stock) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Validation Error',
+                        text: 'Please fill in all required fields.'
+                    });
+                    return;
+                }
+
+                const productData = {
+                    name: name,
+                    description: description,
+                    price: parseFloat(price),
+                    stock: parseInt(stock),
+                    category_id: category_id || null
+                };
+
+                // Disable button during request
+                $(this).prop('disabled', true).text('Updating...');
+
+                $.ajax({
+                    method: "PUT",
+                    url: `${url}api/v1/products/seller/${sellerId}/${id}`,
+                    data: JSON.stringify(productData),
+                    contentType: 'application/json',
+                    headers: { Authorization: `Bearer ${token}` },
+                    success: function () {
+                        Swal.fire({ 
+                            icon: "success", 
+                            title: "Success!",
+                            text: "Product updated successfully!" 
+                        });
+                        $('#updateSellerProductModal').modal("hide");
+                        table.ajax.reload();
+                    },
+                    error: function (xhr) {
+                        const errorMsg = xhr.responseJSON?.error || "Failed to update product.";
+                        Swal.fire({ 
+                            icon: "error", 
+                            title: "Error",
+                            text: errorMsg 
+                        });
+                    },
+                    complete: function() {
+                        // Re-enable button
+                        $("#sellerProductUpdate").prop('disabled', false).text('Update Product');
+                    }
+                });
+            });
+
+            // ================= DELETE SELLER PRODUCT =================
+            $(document).on('click', '.deleteSellerProductBtn', function () {
+                const id = $(this).data('id');
+                
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            method: "DELETE",
+                            url: `${url}api/v1/products/seller/${sellerId}/${id}`,
+                            headers: { Authorization: `Bearer ${token}` },
+                            success: function () {
+                                Swal.fire({
+                                    icon: "success",
+                                    title: "Deleted!",
+                                    text: "Product deleted successfully!"
+                                });
+                                table.ajax.reload();
+                            },
+                            error: function (xhr) {
+                                const errorMsg = xhr.responseJSON?.error || "Failed to delete product.";
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Error",
+                                    text: errorMsg
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+
+            // ================= IMAGE MODAL FUNCTIONALITY =================
+            const modal = $('#imageModal');
+            const modalImg = $('#modalImage');
+            const closeBtn = $('.image-modal-close');
+            const prevBtn = $('.image-modal-prev');
+            const nextBtn = $('.image-modal-next');
+
+            // Close modal when clicking the X or outside the image
+            closeBtn.on('click', function() {
+                modal.hide();
+            });
+
+            modal.on('click', function(e) {
+                if (e.target === this) {
+                    modal.hide();
+                }
+            });
+
+            // Navigate images
+            prevBtn.on('click', function() {
+                if (currentImages.length > 0) {
+                    currentImageIndex = (currentImageIndex - 1 + currentImages.length) % currentImages.length;
+                    modalImg.attr('src', url + currentImages[currentImageIndex]);
+                }
+            });
+
+            nextBtn.on('click', function() {
+                if (currentImages.length > 0) {
+                    currentImageIndex = (currentImageIndex + 1) % currentImages.length;
+                    modalImg.attr('src', url + currentImages[currentImageIndex]);
+                }
+            });
+
+            // Keyboard navigation
+            $(document).on('keydown', function(e) {
+                if (modal.is(':visible')) {
+                    if (e.key === 'Escape') {
+                        modal.hide();
+                    } else if (e.key === 'ArrowLeft') {
+                        prevBtn.click();
+                    } else if (e.key === 'ArrowRight') {
+                        nextBtn.click();
+                    }
+                }
+            });
+        });
+
+        // Function to open image modal
+        window.openImageModal = function(productId, imageIndex) {
+            // Get product data from DataTable
+            const table = $('#sellerProductsTable').DataTable();
+            const data = table.data().toArray();
+            const product = data.find(p => p.product_id === productId);
+            
+            if (product && product.images && product.images.length > 0) {
+                currentImages = product.images;
+                currentImageIndex = imageIndex || 0;
+                
+                const modal = $('#imageModal');
+                const modalImg = $('#modalImage');
+                
+                modalImg.attr('src', url + currentImages[currentImageIndex]);
+                modal.show();
+                
+                // Hide navigation if only one image
+                if (currentImages.length <= 1) {
+                    $('.image-modal-nav').hide();
+                } else {
+                    $('.image-modal-nav').show();
+                }
+            }
+        };
+
+        // Function to load categories for seller forms
+        function loadSellerCategories() {
+            $.ajax({
+                url: `${url}api/v1/categories`,
+                method: 'GET',
+                success: function (response) {
+                    if (response.categories) {
+                        let options = '<option value="">Select Category (Optional)</option>' + 
+                            response.categories.map(c =>
+                                `<option value="${c.category_id}">${c.name}</option>`
+                            ).join('');
+                        $("#us_category_id").html(options);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Failed to load categories:", error);
+                    $("#us_category_id").html('<option value="">Failed to load categories</option>');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

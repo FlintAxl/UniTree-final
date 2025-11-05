@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Category Products - UniTree</title>
+    <link rel="stylesheet" href="css/products.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+    <link rel="stylesheet" href="css/category.css"> 
+</head>
+<body>
+    <div id="header"></div>
+    <script>$('#header').load('header.html');</script>
+
+    <a href="index.html" class="back-link">
+        <i class="fas fa-arrow-left"></i> Back to Home
+    </a>
+
+    <div class="category-banner">
+        <h1 id="categoryName">Loading...</h1>
+        <p id="categoryDescription"></p>
+        <div class="category-info">
+            <div class="category-stat">
+                <i class="fas fa-box"></i>
+                <span id="productCountDisplay">0 Products</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="filter-section">
+            <div class="product-count-display">
+                Showing <strong id="currentCount">0</strong> products
+            </div>
+            <select id="sortSelect" class="sort-select">
+                <option value="default">Default</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+                <option value="name-az">Name: A to Z</option>
+                <option value="name-za">Name: Z to A</option>
+            </select>
+        </div>
+
+        <div class="product-grid" id="productGrid">
+            <div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading products...</div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/user.js"></script>
+    <script src="js/category.js"></script>
+</body>
+</html>

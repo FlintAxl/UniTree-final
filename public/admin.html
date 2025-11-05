@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin - Users</title>
+
+  <!-- Bootstrap & Styles -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="css/adminstyle.css">
+  <!-- jsPDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- jsPDF AutoTable plugin -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+</head>
+<body>
+
+  <div id="header"></div> 
+   
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#header').load('header.html');
+        });
+    </script>
+
+  <div class="container mt-4">
+    <h2>Admin Dashboard</h2>
+
+    <!-- ===================== -->
+    <!-- Tabs -->
+    <!-- ===================== -->
+    <ul class="nav nav-tabs" id="adminTabs" role="tablist">
+      <li class="nav-item">
+        <a class="nav-link active" id="users-tab" data-toggle="tab" href="#usersTab" role="tab" style="color: #22c55e !important;">Users</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="pet-tab" data-toggle="tab" href="#petTab" role="tab">Pets</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="products-tab" data-toggle="tab" href="#productsTab" role="tab">Products</a>
+      </li>
+       <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#ordersTab">Manage Orders</a>
+      </li>
+       <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#reviewsTab">Manage Reviews</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#sellersTab">Approve Sellers</a>
+      </li>
+    </ul>
+
+    <!-- ===================== -->
+    <!-- Tab Content -->
+    <!-- ===================== -->
+    <div class="tab-content mt-3" id="adminTabsContent">
+
+
+
+
+      <!-- ===================== -->
+      <!-- Users Tab -->
+       <!-- ===================== -->
+      <div class="tab-pane fade show active" id="usersTab" role="tabpanel">
+
+        <!-- Create User Button -->
+        <button class="btn btn-success mb-3" data-toggle="modal" data-target="#createUserModal">
+          <i class="fas fa-user-plus"></i> Add User
+        </button>
+
+        <!-- PDF Export Button -->
+        <button id="exportSellersPdfBtn" class="btn btn-secondary mb-3 ml-2">
+          <i class="fas fa-file-pdf"></i> Export Sellers (PDF)
+        </button>
+
+        <!-- Users Table -->
+        <table id="usersTable" class="display" style="width:100%">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+
+  <!-- ===================== -->
+  <!-- Create User Modal -->
+  <!-- ===================== -->
+  <div class="modal fade" id="createUserModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document"><div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Create User</h5>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="createUserForm">
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="createUsername" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="createEmail" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="createPassword" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Role</label>
+            <select id="createRole" class="form-control">
+              <option value="admin">Admin</option>
+              <option value="customer">Customer</option>
+              <option value="seller">Seller</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button class="btn btn-primary" onclick="createUser()">Save</button>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- ===================== -->
+  <!-- Edit User Modal -->
+  <!-- ===================== -->
+  <div class="modal fade" id="editUserModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document"><div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit User</h5>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="editUserForm">
+          <input type="hidden" id="editUserId">
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="editUsername" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="editEmail" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Role</label>
+            <select id="editRole" class="form-control">
+              <option value="admin">Admin</option>
+              <option value="customer">Customer</option>
+              <option value="seller">Seller</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button class="btn btn-success" onclick="updateUser()">Update</button>
+      </div>
+    </div></div>
+  </div>
+
+
+
+  <!-- ===================== -->
+   <!-- Pets Tab -->
+   <!-- ===================== -->
+<div class="tab-pane fade" id="petTab" role="tabpanel">
+
+  <!-- Create Pet Button -->
+  <button class="btn btn-success mb-3" data-toggle="modal" data-target="#createPetModal">
+    <i class="fas fa-paw"></i> Add Pet
+  </button>
+
+  <!-- Pets Table -->
+  <table id="petsTable" class="display" style="width:100%">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <!-- <th>User ID</th>      -->
+       <th>Username</th> 
+        <th>Level</th>
+        <th>Coins</th>
+        <th>Level 1 Image</th>
+        <th>Level 2 Image</th>
+        <th>Level 3 Image</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+  </table>
+</div>
+
+<!-- Create Pet Modal -->
+<div class="modal fade" id="createPetModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document"><div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title">Create Pet</h5>
+      <button type="button" class="close" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="createPetForm" enctype="multipart/form-data">
+        <!-- Create Pet Modal -->
+<div class="form-group">
+  <label>User</label>
+  <select id="createPetUserId" class="form-control" required></select>
+</div>
+
+        <div class="form-group">
+          <label>Pet Name</label>
+          <input type="text" id="createPetName" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label>Level</label>
+          <input type="number" id="createPetLevel" class="form-control" value="1">
+        </div>
+        <div class="form-group">
+          <label>Coins</label>
+          <input type="number" id="createPetCoins" class="form-control" value="0">
+        </div>
+        <div class="form-group">
+          <label>Level 1 Image</label>
+          <input type="file" name="level1_image" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Level 2 Image</label>
+          <input type="file" name="level2_image" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Level 3 Image</label>
+          <input type="file" name="level3_image" class="form-control">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-dismiss="modal">Close</button>
+      <button class="btn btn-primary" onclick="createPet()">Save</button>
+    </div>
+  </div></div>
+</div>
+
+<!-- Edit Pet Modal -->
+<div class="modal fade" id="editPetModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document"><div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title">Edit Pet</h5>
+      <button type="button" class="close" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="editPetForm" enctype="multipart/form-data">
+        <input type="hidden" id="editPetId">
+        <!-- Edit Pet Modal -->
+<div class="form-group">
+  <label>User</label>
+  <select id="editPetUserId" class="form-control" required></select>
+</div>
+
+        <div class="form-group">
+          <label>Pet Name</label>
+          <input type="text" id="editPetName" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label>Level</label>
+          <input type="number" id="editPetLevel" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label>Coins</label>
+          <input type="number" id="editPetCoins" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label>Level 1 Image</label>
+          <input type="file" name="level1_image" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Level 2 Image</label>
+          <input type="file" name="level2_image" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Level 3 Image</label>
+          <input type="file" name="level3_image" class="form-control">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-dismiss="modal">Close</button>
+      <button class="btn btn-success" onclick="updatePet()">Update</button>
+    </div>
+  </div></div>
+</div>
+
+
+<!-- ===================== -->
+<!-- Products Tab -->
+<!-- ===================== -->
+<div class="tab-pane fade" id="productsTab" role="tabpanel">
+
+  <!-- Products Table -->
+  <table id="itable" class="display" style="width:100%">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Images</th>
+        <th>Name</th>
+        <th>Category</th>
+        <th>Description</th>
+        <th>Price</th>
+        <th>Stock</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+  </table>
+
+  <!-- Button to open Create Modal -->
+  <button class="btn btn-primary mt-3" data-toggle="modal" data-target="#createProductModal">
+    + Add Product
+  </button>
+</div>
+
+
+<!-- ===================== -->
+<!-- Create Product Modal -->
+<!-- ===================== -->
+<div class="modal fade" id="createProductModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document"><div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title">Create Product</h5>
+      <button type="button" class="close" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="createProductForm" enctype="multipart/form-data">
+        <div class="form-group">
+          <label for="c_name">Product Name</label>
+          <input type="text" id="c_name" name="name" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+          <label for="c_description">Description</label>
+          <textarea id="c_description" name="description" class="form-control"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="c_price">Price</label>
+          <input type="number" step="0.01" id="c_price" name="price" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+          <label for="c_stock">Stock</label>
+          <input type="number" id="c_stock" name="stock" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+          <label for="c_category_id">Category</label>
+          <select id="c_category_id" name="category_id" class="form-control"></select>
+        </div>
+
+        <div class="form-group">
+          <label for="c_img">Product Images</label>
+          <input type="file" id="c_img" name="image" class="form-control" multiple>
+          <div id="c_imagePreview"></div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-dismiss="modal">Close</button>
+      <button class="btn btn-primary" id="productSubmit">Save</button>
+    </div>
+  </div></div>
+</div>
+
+
+<!-- ===================== -->
+<!-- Update Product Modal -->
+<!-- ===================== -->
+<div class="modal fade" id="updateProductModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document"><div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title">Update Product</h5>
+      <button type="button" class="close" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="updateProductForm" enctype="multipart/form-data">
+        <input type="hidden" id="u_productId" name="product_id">
+
+        <div class="form-group">
+          <label for="u_name">Product Name</label>
+          <input type="text" id="u_name" name="name" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+          <label for="u_description">Description</label>
+          <textarea id="u_description" name="description" class="form-control"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="u_price">Price</label>
+          <input type="number" step="0.01" id="u_price" name="price" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+          <label for="u_stock">Stock</label>
+          <input type="number" id="u_stock" name="stock" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+          <label for="u_category_id">Category</label>
+          <select id="u_category_id" name="category_id" class="form-control"></select>
+        </div>
+
+        <div class="form-group">
+          <label for="u_img">Product Images</label>
+          <input type="file" id="u_img" name="image" class="form-control" multiple>
+          <div id="u_imagePreview"></div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-dismiss="modal">Close</button>
+      <button class="btn btn-success" id="productUpdate">Update</button>
+    </div>
+  </div></div>
+</div>
+<!-- ===================== -->
+<!-- Delete Product Modal -->
+<!-- ===================== -->
+<div class="modal fade" id="deleteProductModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document"><div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title">Delete Product</h5>
+      <button type="button" class="close" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p>Are you sure you want to delete this product?</p>
+      <input type="hidden" id="deleteProductId">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+      <button class="btn btn-danger" id="confirmDeleteProduct">Delete</button>
+    </div>
+  </div></div>
+</div>
+
+
+
+  <!-- ===================== -->
+   <!-- Orders Tab -->
+    <!-- ===================== -->
+      <div class="tab-pane fade" id="ordersTab">
+  <style>
+    #ordersTable,
+    #ordersTable thead,
+    #ordersTable tbody,
+    #ordersTable th,
+    #ordersTable td,
+    #ordersTable tr {
+      color: white !important;
+    }
+  </style>
+  <div style="overflow-x:auto;">
+    <table id="ordersTable" class="table table-striped table-hover w-100" style="min-width:900px;">
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Customer</th>
+          <th>Items</th>
+          <th>Total Amount</th>
+          <th>Order Date</th>
+          <th>Status</th>
+          <!-- <th>Actions</th> -->
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+      <!-- ===================== -->
+        <!-- Reviews Tab -->
+         <!-- ===================== -->
+<div class="tab-pane fade" id="reviewsTab">
+  <style>
+    #reviewsTable,
+    #reviewsTable thead,
+    #reviewsTable tbody,
+    #reviewsTable th,
+    #reviewsTable td,
+    #reviewsTable tr {
+      color: white !important;
+    }
+  </style>
+  <div style="overflow-x:auto;">
+    <table id="reviewsTable" class="table table-striped table-hover w-100">
+      <thead>
+        <tr>
+          <th>Review ID</th>
+          <th>User</th>
+          <th>Item</th>
+          <th>Order</th>
+          <th>Rating</th>
+          <th>Comment</th>
+          <th>Created At</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+
+
+<!-- ===================== -->
+        <!-- SELLERS Tab -->
+         <!-- ===================== -->
+<!-- ===================== -->
+<!-- SELLERS Tab -->
+<!-- ===================== -->
+<div class="tab-pane fade" id="sellersTab" role="tabpanel">
+  <style>
+    #sellerRequests,
+    #sellerRequests thead,
+    #sellerRequests tbody,
+    #sellerRequests th,
+    #sellerRequests td,
+    #sellerRequests tr {
+      color: white !important;
+    }
+  </style>
+  <h3>Pending Seller Requests</h3>
+  <table id="sellerRequests" class="table table-striped table-hover w-100">
+    <thead>
+      <tr>
+        <th>User ID</th>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+</div>
+
+
+  <!-- ===================== -->
+  <!-- Scripts -->
+  <!-- ===================== -->
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+
+
+  <!-- External JS -->
+  <script src="js/config.js"></script>
+  <script src="js/admin.js"></script>
+  <script src="js/product.js"></script>
+
+  <!-- Check Login/Role -->
+  <script>
+    function requireAdmin() {
+      const userId = sessionStorage.getItem('userId');
+      const role = sessionStorage.getItem('role');
+      if (!userId || role !== 'admin') {
+        Swal.fire({
+          icon: 'error',
+          title: 'Access Denied',
+          text: 'Admins only.',
+        }).then(() => {
+          window.location.href = 'login.html';
+        });
+      }
+    }
+    $(document).ready(requireAdmin);
+  </script>
+
+
+</body>
+</html>

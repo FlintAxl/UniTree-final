@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Cart - UniTree</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/cart.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+</head>
+<body>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+        <div id="header"></div>
+    <script>
+    $('#header').load('header.html');
+    </script>
+
+    <div class="cart-container">
+        <div class="cart-header">
+            <h1>Your Shopping Cart</h1>
+            <p>Review and manage your items before checkout</p>
+        </div>
+        
+        <div class="cart-content">
+            <div class="cart-items" id="cartItems">
+                <!-- Items will be rendered by cart.js -->
+            </div>
+            
+            <div class="cart-summary">
+                <h3 class="summary-title">Order Summary</h3>
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="subtotal">₱0.00</span>
+                </div>
+                <div class="summary-row">
+                    <span>Shipping</span>
+                    <span>Calculated at checkout</span>
+                </div>
+                <div class="summary-row summary-total">
+                    <span>Total</span>
+                    <span id="total">₱0.00</span>
+                </div>
+                <!-- 🎟️ DISCOUNT SECTION -->
+<div class="summary-row">
+  <button id="useDiscountBtn" class="btn btn-outline-secondary" style="width:100%;">
+    <i class="fa-solid fa-ticket"></i> Use Discount
+  </button>
+</div>
+
+<!-- 🎟️ DISCOUNT MODAL -->
+<div id="discountModal" class="modal" style="display:none;">
+  <div class="modal-content" style="max-width:400px;margin:auto;padding:20px;background:#fff;border-radius:10px;">
+    <h3>Select a Discount</h3>
+    <div id="discountListContainer" style="max-height:300px;overflow-y:auto;margin-top:10px;"></div>
+    <button id="closeDiscountModal" class="btn btn-secondary" style="margin-top:15px;">Close</button>
+  </div>
+</div>
+<!-- ===== PAYMENT SECTION (summary) ===== -->
+<div class="summary-row" style="margin-top:10px;">
+  <button id="usePaymentBtn" class="btn btn-outline-secondary" style="width:100%;">
+    <i class="fa-solid fa-credit-card"></i> Payment Method
+  </button>
+</div>
+
+
+<!-- Compact Payment Modal (quick select) -->
+<div id="paymentModal" class="modal" style="display:none;">
+  <div class="modal-content" style="max-width:420px;margin:auto;padding:18px;background:#fff;border-radius:12px;">
+    <h3>Select Payment</h3>
+
+    <div id="quickPaymentList" style="margin-top:10px;">
+      <!-- quick options will be inserted by JS -->
+      <!-- e.g. a button for COD, a button for GCash -->
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:14px;">
+      <button id="viewAllPaymentBtn" class="btn btn-link" style="flex:1;text-align:left;">View all options</button>
+      <button id="closePaymentModal" class="btn btn-secondary" style="flex:1;">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Full Payment Options Modal (view all) -->
+<div id="allPaymentsModal" class="modal" style="display:none;">
+  <div class="modal-content" style="max-width:520px;margin:auto;padding:18px;background:#fff;border-radius:12px;">
+    <h3>All Payment Options</h3>
+
+    <div id="allPaymentList" style="max-height:320px;overflow-y:auto;margin-top:12px;">
+      <!-- full payment options will be populated by JS -->
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:15px;">
+      <button id="confirmPaymentBtn" class="btn btn-primary" style="flex:1;">Confirm</button>
+      <button id="closeAllPaymentsBtn" class="btn btn-secondary" style="flex:1;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Selected payment display -->
+<div id="selectedPaymentDisplay" style="
+  margin-top:12px;
+  font-size:0.95rem;
+  color:#555;
+  background:#f8f9fc;
+  border:1px solid #e3e6f0;
+  padding:10px 12px;
+  border-radius:8px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+">
+  <strong>Payment:</strong> <span id="paymentLabel">Not selected</span>
+</div>
+
+<!-- ===== GCash QR Modal ===== -->
+<div id="gcashQrModal" class="modal" style="display:none;">
+  <div class="modal-content" style="max-width:420px;margin:auto;padding:18px;background:#fff;border-radius:12px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <h3 style="margin:0;">GCash Payment</h3>
+      <button id="closeGcashQrModal" class="btn btn-link" style="font-size:1.0rem;">✕</button>
+    </div>
+
+    <div style="text-align:center;margin-top:12px;">
+      <!-- Mock QR (SVG inline) -->
+      <div id="gcashQrImage" style="width:220px;height:220px;margin:0 auto;border-radius:8px;overflow:hidden;background:#fff;">
+        <!-- Simple SVG placeholder QR code-like graphic -->
+        <svg width="220" height="220" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220">
+          <rect width="220" height="220" fill="#ffffff"/>
+          <!-- draw some darker squares to look like a QR -->
+          <rect x="10" y="10" width="60" height="60" fill="#111"/>
+          <rect x="150" y="10" width="60" height="60" fill="#111"/>
+          <rect x="10" y="150" width="60" height="60" fill="#111"/>
+          <rect x="90" y="90" width="40" height="40" fill="#111"/>
+          <rect x="60" y="60" width="15" height="15" fill="#111"/>
+          <rect x="145" y="145" width="12" height="12" fill="#111"/>
+          <rect x="90" y="120" width="10" height="10" fill="#111"/>
+          <rect x="120" y="90" width="10" height="10" fill="#111"/>
+          <!-- decorative dots -->
+          <rect x="80" y="40" width="8" height="8" fill="#111"/>
+          <rect x="120" y="40" width="8" height="8" fill="#111"/>
+        </svg>
+      </div>
+
+      <div style="margin-top:14px;text-align:left;">
+        <div style="font-weight:700;">GCash Account</div>
+        <div id="gcashName" style="margin-top:6px;">UniTree Flowers</div>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:6px;">
+          <div id="gcashNumber" style="font-family:monospace;font-size:1.05rem;">0917-123-4567</div>
+          <button id="copyGcashBtn" class="btn btn-outline-secondary" style="padding:6px 8px;border-radius:8px;">
+            <i class="fa-regular fa-copy"></i> Copy
+          </button>
+        </div>
+        <div style="font-size:0.88rem;color:#666;margin-top:8px;">
+          Scan the QR code or use the account number to pay via GCash. After payment, tap <strong>"I have paid"</strong>.
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:14px;">
+        <button id="iPaidBtn" class="btn btn-primary" style="flex:1;">I have paid</button>
+        <button id="cancelGcashBtn" class="btn btn-secondary" style="flex:1;">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Add a dim background -->
+<style>
+  .modal {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+  }
+  /* small style improvements for payment list buttons */
+.payment-option {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:10px;
+  border-radius:8px;
+  cursor:pointer;
+  border:1px solid #eee;
+  margin-bottom:8px;
+}
+.payment-option:hover { background:#f7f7f7; }
+.payment-option.selected { border-color:#6c5ce7; box-shadow:0 2px 8px rgba(108,92,231,0.15); }
+
+.payment-icon {
+  width:36px;
+  height:36px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:8px;
+  background:#fafafa;
+  font-size:16px;
+}
+.payment-name { font-weight:600; }
+.payment-sub { font-size:0.85rem; color:#666; margin-left:auto; }
+
+/* GCash QR modal tweaks */
+#gcashQrImage { box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
+#gcashQrModal .modal-content { padding: 18px; }
+#gcashQrModal #gcashName { font-weight:600; font-size:1rem; }
+#gcashQrModal #gcashNumber { background:#f7f7f7; padding:6px 8px; border-radius:6px; }
+#gcashQrModal button { cursor:pointer; }
+
+</style>
+
+                <button class="checkout-btn" id="checkoutBtn" disabled>
+                    <i class="fas fa-lock"></i>
+                    Secure Checkout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+     <script src="js/config.js"></script>
+    <script src="js/user.js"></script>
+    <script src="js/cart.js"></script> <!-- ✅ All cart logic -->
+    <script src="js/payment.js"></script> 
+</body>
+</html>

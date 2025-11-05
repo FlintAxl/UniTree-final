@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniTree</title>
+    <link rel="stylesheet" href="css/index.css">
+</head>
+
+<body>
+   <div id="header"></div> 
+   
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+<script>
+    $('#header').load('header.html', function() {
+        console.log('✅ Header loaded successfully');
+        // Trigger a custom event to notify notif.js that header is ready
+        $(document).trigger('headerLoaded');
+    });
+</script>
+    <section class="hero loading">
+        <div class="hero-content">
+            <h1 class="display-title">DISCOVER<br>NEW<br>PRODUCTS</h1>
+            <p>The University's largest marketplace for accessible products and interactive experience</p>
+            <div class="hero-buttons">
+                <a href="products.html" class="btn btn-primary">Start Shopping</a>
+            </div>
+            <div class="user-avatars">
+                <div class="avatar-group">
+                    <div class="avatar avatar-1"></div>
+                    <div class="avatar avatar-2"></div>
+                    <div class="avatar avatar-3"></div>
+                </div>
+                <div class="user-stats">
+                    <span>10K+</span><br>
+                    <span>Happy Customers</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-image">
+            <div class="product-image"></div>
+        </div>
+    </section>
+
+    <section class="white-banner">
+        <div class="banner-content">
+            <div class="banner-scroll">
+                <span>UNIVERSITY MARKETPLACE • STUDENT DEALS • CAMPUS ESSENTIALS • PRE-OWNED TEXTBOOKS • DORM DECOR • CAMPUS FASHION • TECH ACCESSORIES •</span>
+                <span>UNIVERSITY MARKETPLACE • STUDENT DEALS • CAMPUS ESSENTIALS • PRE-OWNED TEXTBOOKS • DORM DECOR • CAMPUS FASHION • TECH ACCESSORIES •</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="section products-section" style="position: relative; padding: 2rem 0;">
+        <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding: 0 2rem;">
+            <h2 class="section-title">Popular This Week</h2>
+            <div class="carousel-nav" style="display: flex; gap: 1rem;">
+                <button class="carousel-prev" style="background: #f3f4f6; border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease;">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="carousel-next" style="background: #f3f4f6; border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease;">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+        <div class="carousel-container" style="position: relative; overflow: hidden;">
+            <div class="product-carousel" id="popularCards" style="display: flex; gap: 1.5rem; padding: 1rem 2rem; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none;">
+            </div>
+        </div>
+    </section>
+
+    <section class="section all-products-section" style="position: relative; padding: 2rem 0; background-color: #f9fafb;">
+        <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding: 0 2rem;">
+            <h2 class="section-title">All Products</h2>
+            <div class="carousel-nav" style="display: flex; gap: 1rem;">
+                <button class="all-products-prev" style="background: #e5e7eb; border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease;">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="all-products-next" style="background: #e5e7eb; border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease;">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+        <div class="carousel-container" style="position: relative; overflow: hidden;">
+            <div class="all-products-carousel" id="allProducts" style="display: flex; gap: 1.5rem; padding: 1rem 2rem; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none;">
+            </div>
+        </div>
+    </section>
+
+    <section class="section top-sellers-section" style="position: relative; padding: 2rem 0; background-color: #ffffff;">
+        <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding: 0 2rem;">
+            <h2 class="section-title">Top Sellers</h2>
+            <div class="carousel-nav" style="display: flex; gap: 1rem;">
+                <button class="sellers-prev" style="background: #f3f4f6; border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease;">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="sellers-next" style="background: #f3f4f6; border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease;">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+        <div class="carousel-container" style="position: relative; overflow: hidden;">
+            <div class="sellers-carousel" id="sellerCards" style="display: flex; gap: 1.5rem; padding: rem 2rem; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none;">
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2 class="section-title">Explore Categories</h2>
+        <div class="category-grid" id="categoryCards"></div>
+    </section>
+
+    <section class="cta-section">
+        <h2 class="cta-title">Join Us to Shop, Sell and<br>Interact</h2>
+        <p class="cta-subtitle">Become part of our E-commerce Gamified Community</p>
+        <button class="btn btn-primary">Join Community</button>
+    </section>
+
+    <div id="footer"></div> 
+   
+    <script>
+        $('#footer').load('footer.html');
+    </script>
+    
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/user.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/notif.js"></script>
+</body>
+</html>

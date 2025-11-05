@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Reviews - UniTree</title>
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            margin-top: 90px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* Animated background elements */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(34, 197, 94, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: backgroundMove 20s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        @keyframes backgroundMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+        
+        /* Floating orbs */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .orb-1 {
+            top: 10%;
+            left: 20%;
+            width: 300px;
+            height: 300px;
+            background: #22c55e;
+            animation: float 8s ease-in-out infinite;
+        }
+        
+        .orb-2 {
+            bottom: 10%;
+            right: 20%;
+            width: 400px;
+            height: 400px;
+            background: #10b981;
+            animation: float 10s ease-in-out infinite reverse;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(30px, 30px); }
+        }
+        
+        .reviews-container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 30px;
+            position: relative;
+            z-index: 1;
+            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        @keyframes fadeInUp {
+            from { 
+                opacity: 0; 
+                transform: translateY(40px);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0);
+            }
+        }
+        
+        .page-header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding: 40px 0;
+            position: relative;
+        }
+        
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, #22c55e, transparent);
+            border-radius: 2px;
+        }
+        
+        .page-header h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff 0%, #22c55e 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            letter-spacing: -2px;
+        }
+        
+        .page-header p {
+            color: #9ca3af;
+            font-size: 1.1rem;
+            font-weight: 400;
+        }
+        
+        /* Reviews Grid */
+        #reviewsContainer {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        /* Stats Cards */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-bottom: 50px;
+        }
+        
+        .stats-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .stats-card:hover {
+            border-color: rgba(34, 197, 94, 0.3);
+            box-shadow: 0 25px 70px rgba(34, 197, 94, 0.1);
+            transform: translateY(-5px);
+        }
+        
+        .stats-number {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #22c55e 0%, #10b981 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            letter-spacing: -1px;
+        }
+        
+        .stats-label {
+            color: #9ca3af;
+            font-size: 0.95rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* Loading State */
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+        }
+        
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            border: 4px solid rgba(34, 197, 94, 0.1);
+            border-top-color: #22c55e;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Review Card */
+        .review-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0;
+            margin-bottom: 0;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .review-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+        }
+        
+        .review-card:hover::before {
+            opacity: 1;
+        }
+        
+        .review-card:hover {
+            border-color: rgba(34, 197, 94, 0.4);
+            box-shadow: 0 30px 80px rgba(34, 197, 94, 0.15);
+            transform: translateY(-8px);
+        }
+        
+        .product-info {
+            position: relative;
+            padding: 0;
+            margin: 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        .product-image-wrapper {
+            width: 100%;
+            height: 180px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+        
+        .product-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .review-card:hover .product-image {
+            border-color: rgba(34, 197, 94, 0.6);
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(34, 197, 94, 0.3);
+        }
+        
+        .review-content {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+        
+        .review-header {
+            margin-bottom: 12px;
+        }
+        
+        .product-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0 0 8px 0;
+            letter-spacing: -0.3px;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .review-stars {
+            color: #ffc107;
+            font-size: 1rem;
+            display: flex;
+            gap: 3px;
+            margin-bottom: 3px;
+        }
+        
+        .review-stars i {
+            filter: drop-shadow(0 2px 4px rgba(255, 193, 7, 0.3));
+        }
+        
+        .review-comment {
+            color: #d1d5db;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            flex-grow: 1;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .review-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #9ca3af;
+            font-size: 0.85rem;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            margin-top: auto;
+        }
+        
+        .review-date {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .review-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn-edit, .btn-delete {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .btn-edit {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #22c55e;
+        }
+        
+        .btn-edit:hover {
+            background: rgba(34, 197, 94, 0.2);
+            border-color: rgba(34, 197, 94, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .btn-delete {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+        
+        .btn-delete:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 100px 40px;
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            margin: 20px 0;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .empty-state:hover {
+            transform: translateY(-5px);
+            border-color: rgba(34, 197, 94, 0.2);
+            box-shadow: 0 20px 50px rgba(34, 197, 94, 0.1);
+        }
+        
+        .empty-state i {
+            font-size: 5rem;
+            color: #22c55e;
+            margin-bottom: 30px;
+            opacity: 0.5;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.05); opacity: 0.7; }
+        }
+        
+        .empty-state h3 {
+            color: #ffffff;
+            margin-bottom: 15px;
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -1px;
+        }
+        
+        .empty-state p {
+            color: #9ca3af;
+            font-size: 1.1rem;
+            margin-bottom: 35px;
+        }
+        
+        /* Buttons */
+        .btn-primary, .btn-secondary {
+            padding: 16px 35px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 10px 30px rgba(34, 197, 94, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.95rem;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #22c55e 0%, #10b981 100%);
+            color: #000000;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(34, 197, 94, 0.4);
+            color: #000000;
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            box-shadow: none;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px);
+            color: #ffffff;
+        }
+        
+        /* Modal Styles */
+        .modal-content {
+            background: rgba(26, 26, 26, 0.98);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            color: #ffffff;
+        }
+        
+        .modal-header {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 25px 30px;
+        }
+        
+        .modal-title {
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: -0.5px;
+        }
+        
+        .modal-body {
+            padding: 30px;
+        }
+        
+        .modal-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px 30px;
+        }
+        
+        .form-label {
+            color: #d1d5db;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .form-select, .form-control {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            border-radius: 10px;
+            padding: 12px 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-select:focus, .form-control:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(34, 197, 94, 0.5);
+            color: #ffffff;
+            box-shadow: 0 0 0 0.2rem rgba(34, 197, 94, 0.1);
+        }
+        
+        .form-select option {
+            background: #1a1a1a;
+            color: #ffffff;
+        }
+        
+        .btn-close {
+            filter: invert(1);
+            opacity: 0.7;
+        }
+        
+        .btn-close:hover {
+            opacity: 1;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .mt-3 {
+            margin-top: 1rem;
+        }
+        
+        .mt-4 {
+            margin-top: 1.5rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            #reviewsContainer {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+        }
+        
+        @media (max-width: 968px) {
+            .stats-row {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .page-header h1 {
+                font-size: 2.5rem;
+            }
+            
+            #reviewsContainer {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .review-comment {
+                -webkit-line-clamp: 4;
+            }
+            
+            .review-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            
+            .review-actions {
+                width: 100%;
+            }
+            
+            .btn-edit, .btn-delete {
+                flex: 1;
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .reviews-container {
+                padding: 0 20px;
+            }
+            
+            .page-header h1 {
+                font-size: 2rem;
+            }
+            
+            .review-content {
+                padding: 15px;
+            }
+            
+            .product-image-wrapper {
+                height: 160px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <header class="header" id="header">
+        <nav class="nav">
+            <div class="logo">UniTree</div>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="products.html">Shop</a></li>
+                <li><a href="myorders.html">Myorders</a></li>
+            </ul>
+            <div class="nav-actions">
+                <div class="search-box">
+                    <input type="text" placeholder="Search products..." id="searchInput">
+                </div>
+                <a href="cart.html" class="cart-icon" id="cartIcon">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </a>
+                <div class="dropdown" id="joinNowSection">
+                    <button class="btn btn-primary dropdown-toggle" id="joinNowBtn">Join Now</button>
+                    <div class="dropdown-menu" id="joinDropdown">
+                        <a href="login.html">Log In</a>
+                        <a href="register.html">Register</a>
+                    </div>
+                </div>
+                <div class="dropdown" id="userProfileSection" style="display: none;">
+                    <button class="btn btn-primary dropdown-toggle" id="userProfileBtn">
+                        <i class="fas fa-user"></i>
+                        <span id="usernameDisplay"></span>
+                    </button>
+                    <div class="dropdown-menu" id="userDropdown">
+                        <a href="profile.html">Profile</a>
+                        <a href="settings.html">Settings</a>
+                        <a href="#" id="logoutBtn">Logout</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="reviews-container">
+        <div class="page-header">
+            <h1><i class="fas fa-star"></i> My Reviews</h1>
+            <p>All your product reviews in one place</p>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="stats-row" id="statsRow" style="display: none;">
+            <div class="stats-card">
+                <div class="stats-number" id="totalReviews">0</div>
+                <div class="stats-label">Total Reviews</div>
+            </div>
+            <div class="stats-card">
+                <div class="stats-number" id="avgRating">0</div>
+                <div class="stats-label">Average Rating</div>
+            </div>
+            <div class="stats-card">
+                <div class="stats-number" id="productsReviewed">0</div>
+                <div class="stats-label">Products Reviewed</div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingSpinner" class="loading-spinner">
+            <div class="text-center">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3" style="color: #9ca3af;">Loading your reviews...</p>
+            </div>
+        </div>
+
+        <!-- Reviews Container -->
+        <div id="reviewsContainer"></div>
+
+        <!-- Back Button -->
+        <div class="text-center mt-4">
+            <a href="orders.html" class="btn-secondary">
+                <i class="fas fa-arrow-left"></i>Back to Orders
+            </a>
+        </div>
+    </div>
+
+    <!-- Edit Review Modal -->
+    <div class="modal fade" id="editReviewModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Review</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editReviewId">
+                    <div class="mb-3">
+                        <label class="form-label">Rating</label>
+                        <select class="form-select" id="editRating">
+                            <option value="5">5 - Excellent</option>
+                            <option value="4">4 - Very Good</option>
+                            <option value="3">3 - Good</option>
+                            <option value="2">2 - Fair</option>
+                            <option value="1">1 - Poor</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Comment</label>
+                        <textarea class="form-control" id="editComment" rows="4"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn-primary" onclick="saveEditedReview()">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/config.js"></script>
+    <script src="js/user.js"></script>
+
+    <script>
+        const userId = sessionStorage.getItem('userId');
+        const token = sessionStorage.getItem('access_token');
+
+        $(document).ready(function() {
+            // Load header
+            $('#header').load('header.html');
+
+            // Check authentication
+            if (!token || !userId) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Authentication Required',
+                    text: 'Please log in to view your reviews',
+                    confirmButtonText: 'Go to Login'
+                }).then(() => {
+                    window.location.href = 'login.html';
+                });
+                return;
+            }
+
+            loadUserReviews();
+        });
+
+        function loadUserReviews() {
+            $.ajax({
+                url: `${url}api/v1/users/${userId}/reviews`,
+                method: 'GET',
+                success: function(response) {
+                    $('#loadingSpinner').hide();
+                    
+                    if (response.data && response.data.length > 0) {
+                        displayReviews(response.data);
+                        displayStats(response.data);
+                    } else {
+                        displayEmptyState();
+                    }
+                },
+                error: function(xhr) {
+                    $('#loadingSpinner').hide();
+                    console.error('Error loading reviews:', xhr);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to load your reviews. Please try again later.'
+                    });
+                }
+            });
+        }
+
+        function displayReviews(reviews) {
+            let html = '';
+            
+            reviews.forEach(review => {
+                const date = new Date(review.created_at).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+
+                const imageUrl = review.product_image || 'https://via.placeholder.com/300x180?text=No+Image';
+
+                html += `
+                    <div class="review-card">
+                        <div class="product-info">
+                            <div class="product-image-wrapper">
+                                <img src="${imageUrl}" alt="${review.product_name}" class="product-image" 
+                                     onerror="this.src='https://via.placeholder.com/300x180?text=No+Image'">
+                            </div>
+                        </div>
+                        <div class="review-content">
+                            <div class="review-header">
+                                <h5 class="product-name">${review.product_name}</h5>
+                                <div class="review-stars">${getStarRating(review.rating)}</div>
+                            </div>
+                            <p class="review-comment">${escapeHtml(review.comment)}</p>
+                            <div class="review-meta">
+                                <div class="review-date">
+                                    <i class="far fa-calendar"></i>
+                                    <span>${date}</span>
+                                </div>
+                                <div class="review-actions">
+                                    <button class="btn-edit" onclick="editReview(${review.review_id}, ${review.rating}, '${escapeHtml(review.comment)}')">
+                                        <i class="fas fa-edit"></i>Edit
+                                    </button>
+                                    <button class="btn-delete" onclick="deleteReview(${review.review_id})">
+                                        <i class="fas fa-trash"></i>Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            $('#reviewsContainer').html(html);
+        }
+
+        function displayStats(reviews) {
+            const totalReviews = reviews.length;
+            const avgRating = (reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews).toFixed(1);
+            const uniqueProducts = new Set(reviews.map(r => r.product_id)).size;
+
+            $('#totalReviews').text(totalReviews);
+            $('#avgRating').text(avgRating);
+            $('#productsReviewed').text(uniqueProducts);
+            $('#statsRow').show();
+        }
+
+        function displayEmptyState() {
+            $('#reviewsContainer').html(`
+                <div class="empty-state">
+                    <i class="fas fa-star"></i>
+                    <h3>No Reviews Yet</h3>
+                    <p>You haven't written any reviews yet. Order products and share your experience!</p>
+                    <a href="products.html" class="btn-primary mt-3">
+                        <i class="fas fa-shopping-bag"></i>Start Shopping
+                    </a>
+                </div>
+            `);
+        }
+
+        function getStarRating(rating) {
+            let stars = '';
+            for (let i = 1; i <= 5; i++) {
+                stars += i <= rating ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>';
+            }
+            return stars;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function editReview(reviewId, rating, comment) {
+            $('#editReviewId').val(reviewId);
+            $('#editRating').val(rating);
+            $('#editComment').val(comment);
+            
+            const modal = new bootstrap.Modal(document.getElementById('editReviewModal'));
+            modal.show();
+        }
+
+        function saveEditedReview() {
+            const reviewId = $('#editReviewId').val();
+            const rating = $('#editRating').val();
+            const comment = $('#editComment').val();
+
+            if (!comment.trim()) {
+                Swal.fire('Error', 'Please enter a comment', 'error');
+                return;
+            }
+
+            $.ajax({
+                url: `${url}api/v1/reviews/${reviewId}`,
+                method: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({ rating, comment }),
+                success: function() {
+                    bootstrap.Modal.getInstance(document.getElementById('editReviewModal')).hide();
+                    Swal.fire('Success', 'Review updated successfully', 'success');
+                    loadUserReviews();
+                },
+                error: function() {
+                    Swal.fire('Error', 'Failed to update review', 'error');
+                }
+            });
+        }
+
+        function deleteReview(reviewId) {
+            Swal.fire({
+                title: 'Delete Review?',
+                text: 'This action cannot be undone',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                confirmButtonText: 'Yes, delete it'
+            }).then(result => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: `${url}api/v1/reviews/${reviewId}`,
+                        method: 'DELETE',
+                        success: function() {
+                            Swal.fire('Deleted!', 'Your review has been deleted', 'success');
+                            loadUserReviews();
+                        },
+                        error: function() {
+                            Swal.fire('Error', 'Failed to delete review', 'error');
+                        }
+                    });
+                }
+            });
+        }
+        fetch("/header.html")
+                .then(res => res.text())
+                .then(data => {
+                    document.getElementById("header").innerHTML = data;
+                });
+    </script>
+</body>
+</html>

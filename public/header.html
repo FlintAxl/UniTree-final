@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link rel="stylesheet" href="css/header.css">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark" id="mainNavbar">
+
+<script>
+$(document).ready(function() {
+    const userId = sessionStorage.getItem('userId');
+    const role = sessionStorage.getItem('role');
+    const apiUrl = sessionStorage.getItem('apiUrl') || '';
+  
+    function updateAuthUI() {
+      const currentPage = window.location.pathname;
+      const isLoginRegisterPage = currentPage.includes('login.html') || currentPage.includes('register.html');
+      
+      if (isLoginRegisterPage) {
+        $('#mainNavLinks').hide();
+        $('#loginNav, #registerNav').show();
+        $('#logoutNav, #profileNav, #ordersNav, #adminNav').hide();
+      } else if (userId) {
+        $('#loginNav, #registerNav').hide();
+        $('#logoutNav, #profileNav, #ordersNav').show();
+        $('#mainNavLinks').show();
+  
+        //admin header
+        if (role === 'admin') {
+          $('#adminNav').show();
+          $('#cartNav, #ordersNav, #rewardsNav, .nav-item:has(a[href="index.html"]), .nav-item:has(a[href="products.html"])').hide();
+          //seller header
+          } else if (role === 'seller') {
+              $('#mainNavbar').hide();
+              $('#sellerHeader').removeClass('d-none');
+              $('#rewardsNav').hide(); 
+          //customer header
+          } else {
+              $('#adminNav').hide();
+              $('#mainNavbar').show();
+              $('#sellerHeader').addClass('d-none');
+              $('#rewardsNav').show();
+          }
+          //unauthorized user header
+      } else {
+        $('#loginNav, #registerNav').show();
+        $('#logoutNav, #profileNav, #ordersNav, #adminNav').hide();
+        $('#mainNavLinks').show();
+      }
+  
+    }
+  
+    //logout
+    function logoutUser() {
+      const storedUserId = sessionStorage.getItem('userId');
+      if (!storedUserId) return clearUserSession();
+  
+      $.ajax({
+        method: "POST",
+        url: `${apiUrl}api/v1/logout`,
+        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` },
+        data: JSON.stringify({ id: JSON.parse(storedUserId) }),
+        processData: false,
+        contentType: 'application/json; charset=utf-8',
+        dataType: "json",
+        success: function() { clearUserSession("Logged out successfully"); },
+        error: function() { clearUserSession(); }
+      });
+    }
+  
+    function clearUserSession(msg) {
+      sessionStorage.clear();
+      localStorage.removeItem('cart');
+      if (msg) {
+        Swal.fire({
+          icon: 'success', text: msg, timer: 1000, showConfirmButton: false, timerProgressBar: true
+        }).then(() => window.location.href = 'index.html');
+      } else {
+        window.location.href = 'index.html';
+      }
+    }
+  
+    //logout confirmation
+    $('#logoutBtn, #logoutBtnSeller').on('click', function(e) {
+      e.preventDefault();
+      Swal.fire({
+        title: 'Are you sure?',
+        text: "You will be logged out of your account.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, logout',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#0f2027',
+        cancelButtonColor: '#e74c3c'
+      }).then((result) => { if (result.isConfirmed) logoutUser(); });
+    });
+  
+    updateAuthUI();
+  });
+</script>
+
+  <a class="navbar-brand" href="#">
+    <i class="fas fa-tree"></i> UniTree
+  </a>
+  <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav me-auto" id="mainNavLinks">
+      <li class="nav-item"><a class="nav-link" href="index.html"><i class="fas fa-home"></i> Home</a></li>
+      <li class="nav-item"><a class="nav-link" href="products.html"><i class="fas fa-store"></i> Shop</a></li>
+      <li class="nav-item" id="profileNav"><a class="nav-link" href="profile.html"><i class="fas fa-user"></i> Profile</a></li>
+      <li class="nav-item" id="cartNav">
+        <a class="nav-link" href="cart.html">
+          <i class="fas fa-shopping-cart"></i> Cart
+        </a>
+      </li>
+      <li class="nav-item" id="ordersNav"><a class="nav-link" href="myorders.html"><i class="fas fa-box"></i> My Orders</a></li>
+    <li class="nav-item" id="rewardsNav">
+  <a class="nav-link" href="my-rewards.html">
+    <i class="fas fa-gift"></i> Pet
+  </a>
+</li>
+
+    </ul>
+
+    <ul class="navbar-nav">
+      <li class="nav-item" id="registerNav"><a class="nav-link" href="register.html"><i class="fas fa-user-plus"></i> Register</a></li>
+      <li class="nav-item" id="loginNav"><a class="nav-link" href="login.html"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+      <li class="nav-item" id="adminNav" style="display: none;"><a class="nav-link" href="admin.html"><i class="fas fa-crown"></i> Admin Dashboard</a></li>
+      <li class="nav-item" id="logoutNav" style="display: none;"><a class="nav-link" href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+       
+    </ul>
+  </div>
+</nav>
+
+<!-- SELLER -->
+<div class="seller-header d-none" id="sellerHeader">
+  <div class="logo">
+    <i class="fas fa-store-alt"></i> UniTree - Seller Portal
+  </div>
+  <div class="user-info">
+    <a href="seller.html" class="back-to-dashboard">
+      <i class="fas fa-arrow-left"></i> Dashboard
+    </a>
+    <a href="profile.html" class="profile-link">
+      <i class="fas fa-user"></i> Profile
+    </a>
+    <a href="#" id="logoutBtnSeller" class="logout-link">
+      <i class="fas fa-sign-out-alt"></i> Logout
+    </a>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/header.js"></script>
+</body>
+</html>

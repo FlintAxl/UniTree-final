@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Product - UniTree</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Bootstrap 4 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" crossorigin="anonymous" />
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.16.1/sweetalert2.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <!-- Bootstrap 4 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"></script>
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.16.1/sweetalert2.min.js"></script>
+    <!-- Config and User JS -->
+    <script src="js/config.js"></script>
+    <script src="js/user.js"></script>
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            min-height: 100vh;
+        }
+
+        .container-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: calc(100vh - 80px);
+            padding: 20px 0;
+        }
+
+        .form-container {
+            background: rgba(74, 222, 128, 0.1);
+            padding: 3rem 2rem;
+            border-radius: 25px;
+            border: 1px solid rgba(74, 222, 128, 0.3);
+            max-width: 700px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+            margin-top: 20px;
+        }
+
+        .page-header {
+            color: #4ade80;
+            margin-bottom: 2rem;
+            font-weight: 600;
+            font-size: 2rem;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            color: #4ade80;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            display: block;
+            font-size: 0.95rem;
+        }
+
+        .form-control {
+            width: 100% !important;
+            padding: 0.8rem 1rem;
+            border-radius: 15px;
+            border: 1px solid rgba(74, 222, 128, 0.3);
+            outline: none;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: #4ade80;
+            box-shadow: 0 0 0 0.2rem rgba(74, 222, 128, 0.25);
+            background: rgba(255,255,255,0.15);
+        }
+
+        .form-control::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        select.form-control {
+            color: white;
+        }
+
+        select.form-control option {
+            background-color: #2c5364;
+            color: white;
+        }
+
+        /* Image Upload Styles */
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border-radius: 15px;
+            border: 2px dashed rgba(74, 222, 128, 0.5);
+            background: rgba(255,255,255,0.05);
+            color: #4ade80;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: block;
+        }
+
+        .file-input-label:hover {
+            border-color: #4ade80;
+            background: rgba(74, 222, 128, 0.1);
+        }
+
+        .image-preview-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .image-preview {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid rgba(74, 222, 128, 0.3);
+        }
+
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-remove {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 20px;
+            height: 20px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        .image-remove:hover {
+            background: #dc2626;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border-radius: 25px;
+            border: none;
+            background: linear-gradient(45deg, #4ade80, #22c55e);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(74, 222, 128, 0.3);
+            background: linear-gradient(45deg, #22c55e, #16a34a);
+        }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border-radius: 25px;
+            border: 1px solid rgba(74, 222, 128, 0.3);
+            background: transparent;
+            color: #4ade80;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(74, 222, 128, 0.1);
+            color: white;
+        }
+
+        #header {
+            position: relative;
+            z-index: 10;
+        }
+
+        .footer {
+            background: rgba(0,0,0,0.2);
+            color: rgba(255,255,255,0.8);
+            text-align: center;
+            padding: 1rem 0;
+            margin-top: auto;
+        }
+
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 2rem 1.5rem;
+                width: 95%;
+            }
+            
+            .page-header {
+                font-size: 1.8rem;
+                margin-bottom: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+   
+    
+    
+    <div class="container-wrapper">
+        <div class="form-container">
+            <h1 class="page-header">Add New Product</h1>
+            
+            <form id="addProductForm">
+                <div class="form-group">
+                    <label for="productName">Product Name *</label>
+                    <input type="text" id="productName" name="name" class="form-control" placeholder="Enter product name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="productDescription">Description *</label>
+                    <textarea id="productDescription" name="description" class="form-control" placeholder="Enter product description" required></textarea>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="productPrice">Price (₱) *</label>
+                            <input type="number" id="productPrice" name="price" class="form-control" placeholder="0.00" step="0.01" min="0" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="productStock">Stock Quantity *</label>
+                            <input type="number" id="productStock" name="stock" class="form-control" placeholder="0" min="0" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="productCategory">Category</label>
+                    <select id="productCategory" name="category_id" class="form-control">
+                        <option value="">Loading categories...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="productImages">Product Images</label>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="productImages" class="file-input" multiple accept="image/*">
+                        <label for="productImages" class="file-input-label">
+                            📁 Click to select images or drag and drop
+                            <br><small>You can select multiple images</small>
+                        </label>
+                    </div>
+                    <div id="imagePreviewContainer" class="image-preview-container"></div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" id="submitProduct">Add Product</button>
+                <a href="seller.html" class="btn btn-secondary">Back to Dashboard</a>
+            </form>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2025 UniTree. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Load header content
+        fetch("/header.html")
+            .then(res => res.text())
+            .then(data => {
+                document.getElementById("header").innerHTML = data;
+            });
+
+        let selectedFiles = [];
+
+        $(document).ready(function() {
+            const token = sessionStorage.getItem('access_token');
+            const sellerId = sessionStorage.getItem('userId');
+            const userRole = sessionStorage.getItem('role');
+
+            // Check if user is a seller
+            if (userRole !== 'seller' || !sellerId) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Access Denied',
+                    text: 'Only sellers can access this page.'
+                }).then(() => {
+                    window.location.href = 'index.html';
+                });
+                return;
+            }
+
+            // Load categories
+            loadCategories();
+
+            // Handle file input change
+            $('#productImages').on('change', function(e) {
+                const files = Array.from(e.target.files);
+                files.forEach(file => {
+                    if (file.type.startsWith('image/')) {
+                        selectedFiles.push(file);
+                        addImagePreview(file);
+                    }
+                });
+            });
+
+            // Handle form submission
+          // Handle form submission - CORRECTED VERSION
+$('#addProductForm').on('submit', function(e) {
+    e.preventDefault();
+
+    const name = $('#productName').val().trim();
+    const description = $('#productDescription').val().trim();
+    const price = $('#productPrice').val();
+    const stock = $('#productStock').val();
+    const category_id = $('#productCategory').val();
+
+    if (!name || !description || !price || !stock) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Validation Error',
+            text: 'Please fill in all required fields.'
+        });
+        return;
+    }
+
+    // Create FormData object to send both product data AND images
+    const formData = new FormData();
+    
+    // Append product data
+    formData.append('name', name);
+    formData.append('description', description);
+    formData.append('price', parseFloat(price));
+    formData.append('stock', parseInt(stock));
+    if (category_id) {
+        formData.append('category_id', category_id);
+    }
+    
+    // Append all selected images
+    selectedFiles.forEach((file) => {
+        formData.append('images', file);
+    });
+
+    // Disable submit button
+    $('#submitProduct').prop('disabled', true).text('Adding Product...');
+
+    // Send everything in ONE request
+    $.ajax({
+        method: "POST",
+        url: `${url}api/v1/products/seller/${sellerId}`,
+        data: formData,
+        processData: false,  // Important: don't process the data
+        contentType: false,  // Important: don't set content type (let browser set it)
+        headers: { Authorization: `Bearer ${token}` },
+        success: function (response) {
+            console.log('Product created with images:', response);
+            Swal.fire({
+                icon: "success",
+                title: "Success!",
+                text: response.message || "Product added successfully!"
+            }).then(() => {
+                window.location.href = 'view-products.html';
+            });
+        },
+        error: function (xhr) {
+            console.log('Product creation error:', xhr);
+            const errorMsg = xhr.responseJSON?.error || "Failed to add product.";
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: errorMsg
+            });
+        },
+        complete: function() {
+            $('#submitProduct').prop('disabled', false).text('Add Product');
+        }
+    });
+});
+        });
+
+        function addImagePreview(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewId = 'preview_' + Date.now();
+                const previewHtml = `
+                    <div class="image-preview" id="${previewId}">
+                        <img src="${e.target.result}" alt="Preview">
+                        <button type="button" class="image-remove" onclick="removeImage('${previewId}', '${file.name}')">×</button>
+                    </div>
+                `;
+                $('#imagePreviewContainer').append(previewHtml);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeImage(previewId, fileName) {
+            // Remove from preview
+            $('#' + previewId).remove();
+            
+            // Remove from selectedFiles array
+            selectedFiles = selectedFiles.filter(file => file.name !== fileName);
+            
+            // Clear and reset the file input
+            const fileInput = $('#productImages')[0];
+            fileInput.value = '';
+        }
+
+        function loadCategories() {
+            $.ajax({
+                url: `${url}api/v1/categories`,
+                method: 'GET',
+                success: function (response) {
+                    if (response.categories) {
+                        let options = '<option value="">Select Category (Optional)</option>' + 
+                            response.categories.map(c =>
+                                `<option value="${c.category_id}">${c.name}</option>`
+                            ).join('');
+                        $("#productCategory").html(options);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Failed to load categories:", error);
+                    $("#productCategory").html('<option value="">Failed to load categories</option>');
+                }
+            });
+        }
+
+        // Drag and drop functionality
+        const fileInputLabel = document.querySelector('.file-input-label');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            fileInputLabel.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            fileInputLabel.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            fileInputLabel.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            fileInputLabel.style.borderColor = '#4ade80';
+            fileInputLabel.style.backgroundColor = 'rgba(74, 222, 128, 0.1)';
+        }
+
+        function unhighlight(e) {
+            fileInputLabel.style.borderColor = 'rgba(74, 222, 128, 0.5)';
+            fileInputLabel.style.backgroundColor = 'rgba(255,255,255,0.05)';
+        }
+
+        fileInputLabel.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = Array.from(dt.files);
+            
+            files.forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    selectedFiles.push(file);
+                    addImagePreview(file);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

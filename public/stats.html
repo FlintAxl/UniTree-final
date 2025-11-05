@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Seller Dashboard - UniTree</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- Bootstrap 4 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+        crossorigin="anonymous" />
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.16.1/sweetalert2.css"
+        crossorigin="anonymous" />
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <!-- jsPDF and html2canvas for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <!-- Bootstrap 4 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"></script>
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.16.1/sweetalert2.min.js"></script>
+    <!-- Config and User JS -->
+    <script src="js/config.js"></script>
+    <script src="js/user.js"></script>
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            min-height: 100vh;
+        }
+
+        .dashboard-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: calc(100vh - 80px);
+            padding: 20px 0;
+        }
+
+        .dashboard-container {
+            background: rgba(74, 222, 128, 0.1);
+            padding: 2rem;
+            border-radius: 25px;
+            border: 1px solid rgba(74, 222, 128, 0.3);
+            max-width: 1200px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            margin-top: 10px;
+        }
+
+        .welcome-header {
+            color: #4ade80;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            font-size: 2rem;
+            text-align: left;
+        }
+
+        .welcome-subtitle {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+            text-align: left;
+        }
+
+        /* Export Button */
+        .export-btn {
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 0.75rem 2rem;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(74, 222, 128, 0.3);
+            margin-bottom: 1.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(74, 222, 128, 0.4);
+        }
+
+        .export-btn:active {
+            transform: translateY(0);
+        }
+
+        .export-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Stats Cards */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(74, 222, 128, 0.1);
+            border: 1px solid rgba(74, 222, 128, 0.3);
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: #4ade80;
+            background: rgba(74, 222, 128, 0.15);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #4ade80;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            background: rgba(74, 222, 128, 0.05);
+            border: 1px solid rgba(74, 222, 128, 0.2);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-title {
+            color: #4ade80;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+        }
+
+        /* Timeframe Selector */
+        .timeframe-selector {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .timeframe-btn {
+            background: rgba(74, 222, 128, 0.1);
+            border: 1px solid rgba(74, 222, 128, 0.3);
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .timeframe-btn.active {
+            background: rgba(74, 222, 128, 0.3);
+            border-color: #4ade80;
+        }
+
+        .timeframe-btn:hover {
+            background: rgba(74, 222, 128, 0.2);
+            border-color: #4ade80;
+        }
+
+        .no-data-message {
+            color: rgba(255, 255, 255, 0.6);
+            text-align: center;
+            padding: 2rem;
+            font-style: italic;
+        }
+
+        /* PDF Specific Styles */
+        .pdf-header {
+            display: none;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+
+            .dashboard-container {
+                background: white;
+                border: none;
+                box-shadow: none;
+            }
+
+            .export-btn,
+            .timeframe-selector {
+                display: none;
+            }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .dashboard-container {
+                padding: 1.5rem;
+                margin: 10px;
+            }
+
+            .welcome-header {
+                font-size: 1.5rem;
+            }
+
+            .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .chart-wrapper {
+                height: 300px;
+            }
+
+            .timeframe-selector {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+        }
+
+        .seller-header {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(74, 222, 128, 0.2);
+        }
+
+        .seller-header .logo {
+            color: #4ade80;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .seller-header .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="header"></div>
+    <script>
+        $(document).ready(function () {
+            $('#header').load('header.html', function (response, status, xhr) {
+                if (status === 'error') {
+                    console.error('Failed to load header:', xhr.statusText);
+                } else {
+                    console.log('Header loaded successfully.');
+                }
+            });
+        });
+    </script>
+
+    <div class="dashboard-wrapper">
+        <div class="dashboard-container" id="dashboardContent">
+            <h1 class="welcome-header">Welcome, <span id="sellerName">Seller</span>!</h1>
+            <p class="welcome-subtitle">Manage your products and analyze your sales performance</p>
+
+            <!-- Export PDF Button -->
+            <button class="export-btn" id="exportPdfBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Export to PDF
+            </button>
+
+            <!-- Timeframe Selector -->
+            <div class="timeframe-selector">
+                <button class="timeframe-btn active" data-timeframe="week">Last Week</button>
+                <button class="timeframe-btn" data-timeframe="month">Last Month</button>
+                <button class="timeframe-btn" data-timeframe="year">Last Year</button>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalRevenue">₱0.00</div>
+                    <div class="stat-label">Total Revenue</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalSold">0</div>
+                    <div class="stat-label">Items Sold</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalOrders">0</div>
+                    <div class="stat-label">Total Orders</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avgOrderValue">₱0.00</div>
+                    <div class="stat-label">Avg Order Value</div>
+                </div>
+            </div>
+
+            <!-- Product Sales Chart -->
+            <div class="chart-container">
+                <h3 class="chart-title">Product Sales Performance</h3>
+                <div class="chart-wrapper">
+                    <canvas id="productSalesChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Daily Sales Chart -->
+            <div class="chart-container">
+                <h3 class="chart-title">Daily Sales Trend</h3>
+                <div class="chart-wrapper">
+                    <canvas id="dailySalesChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Category Sales Chart -->
+            <div class="chart-container">
+                <h3 class="chart-title">Sales by Category</h3>
+                <div class="chart-wrapper">
+                    <canvas id="categorySalesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let productChart, dailyChart, categoryChart;
+        let currentTimeframe = 'month';
+        let currentAnalyticsData = null;
+
+        // Load header content
+        fetch("/header.html")
+            .then(res => res.text())
+            .then(data => {
+                document.getElementById("header").innerHTML = data;
+            })
+            .catch(err => console.log('Header load error:', err));
+
+        $(document).ready(function () {
+            const userRole = sessionStorage.getItem('role');
+            const token = sessionStorage.getItem('access_token');
+            const sellerId = sessionStorage.getItem('userId');
+            const username = sessionStorage.getItem('user_name');
+
+            console.log('Seller Dashboard Initialized');
+            console.log('User Role:', userRole);
+            console.log('Token exists:', !!token);
+            console.log('Seller ID:', sellerId);
+
+            // Set seller name
+            if (username) {
+                $('#sellerName').text(username);
+            }
+
+            if (!token) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Access Denied',
+                    text: 'Please login to access the seller dashboard.',
+                    showConfirmButton: true
+                }).then(() => {
+                    window.location.href = 'login.html';
+                });
+                return;
+            }
+
+            if (userRole !== 'seller') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Access Denied',
+                    text: 'This page is only accessible to sellers.',
+                    showConfirmButton: true
+                }).then(() => {
+                    window.location.href = 'index.html';
+                });
+                return;
+            }
+
+            if (!sellerId || sellerId === 'null' || sellerId === 'undefined') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Missing Seller ID',
+                    text: 'Your seller ID is not set. Please login again.',
+                    showConfirmButton: true
+                }).then(() => {
+                    sessionStorage.clear();
+                    window.location.href = 'login.html';
+                });
+                return;
+            }
+
+            // Load initial analytics data
+            loadAnalytics(sellerId, currentTimeframe);
+
+            // Handle timeframe changes
+            $('.timeframe-btn').click(function () {
+                $('.timeframe-btn').removeClass('active');
+                $(this).addClass('active');
+                currentTimeframe = $(this).data('timeframe');
+                loadAnalytics(sellerId, currentTimeframe);
+            });
+
+            // Handle PDF Export
+            $('#exportPdfBtn').click(function () {
+                exportToPDF();
+            });
+        });
+
+        function loadAnalytics(sellerId, timeframe) {
+            showLoading();
+
+            const apiUrl = `${url}api/v1/analytics/${sellerId}?timeframe=${timeframe}`;
+            console.log('Loading analytics from:', apiUrl);
+
+            $.ajax({
+                url: apiUrl,
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+                },
+                success: function (response) {
+                    console.log('Analytics response received:', response);
+                    if (response.success) {
+                        currentAnalyticsData = response.data;
+                        updateStats(response.data.summary);
+                        updateCharts(response.data);
+                    } else {
+                        console.error('Response indicates failure:', response);
+                        showError('Failed to load analytics data');
+                    }
+                },
+                error: function (xhr) {
+                    console.error('Analytics load error:', xhr);
+
+                    let errorMsg = 'Failed to load analytics data';
+                    if (xhr.responseJSON && xhr.responseJSON.error) {
+                        errorMsg += ': ' + xhr.responseJSON.error;
+                    } else if (xhr.statusText) {
+                        errorMsg += ': ' + xhr.statusText;
+                    }
+                    showError(errorMsg);
+
+                    updateStats({
+                        totalRevenue: 0,
+                        totalQuantitySold: 0,
+                        totalOrders: 0
+                    });
+                    updateCharts({
+                        productSales: [],
+                        dailySales: [],
+                        categorySales: []
+                    });
+                }
+            });
+        }
+
+        function updateStats(summary) {
+            console.log('Updating stats with:', summary);
+            $('#totalRevenue').text(`₱${parseFloat(summary.totalRevenue || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}`);
+            $('#totalSold').text((summary.totalQuantitySold || 0).toLocaleString());
+            $('#totalOrders').text((summary.totalOrders || 0).toLocaleString());
+
+            const avgOrderValue = summary.totalOrders > 0 ?
+                (parseFloat(summary.totalRevenue) / summary.totalOrders) : 0;
+            $('#avgOrderValue').text(`₱${avgOrderValue.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`);
+        }
+
+        function updateCharts(data) {
+            console.log('Updating charts with data:', data);
+
+            if (productChart) productChart.destroy();
+            if (dailyChart) dailyChart.destroy();
+            if (categoryChart) categoryChart.destroy();
+
+            // Product Sales Chart
+            const productCtx = document.getElementById('productSalesChart').getContext('2d');
+            const hasProductData = data.productSales && data.productSales.length > 0;
+            const productLabels = hasProductData
+                ? data.productSales.map(item => item.product_name)
+                : ['No Sales Data'];
+            const productData = hasProductData
+                ? data.productSales.map(item => parseInt(item.total_sold) || 0)
+                : [0];
+
+            productChart = new Chart(productCtx, {
+                type: 'bar',
+                data: {
+                    labels: productLabels,
+                    datasets: [{
+                        label: 'Units Sold',
+                        data: productData,
+                        backgroundColor: 'rgba(74, 222, 128, 0.6)',
+                        borderColor: 'rgba(74, 222, 128, 1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: 'white' }
+                        },
+                        tooltip: {
+                            enabled: hasProductData
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: 'white',
+                                precision: 0
+                            },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        x: {
+                            ticks: {
+                                color: 'white',
+                                maxRotation: 45,
+                                minRotation: 45
+                            },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        }
+                    }
+                }
+            });
+
+            // Daily Sales Chart
+            const dailyCtx = document.getElementById('dailySalesChart').getContext('2d');
+            const hasDailyData = data.dailySales && data.dailySales.length > 0;
+            const dailyLabels = hasDailyData
+                ? data.dailySales.map(item => new Date(item.sale_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }))
+                : ['No Sales Data'];
+            const dailyRevenue = hasDailyData
+                ? data.dailySales.map(item => parseFloat(item.daily_revenue) || 0)
+                : [0];
+
+            dailyChart = new Chart(dailyCtx, {
+                type: 'line',
+                data: {
+                    labels: dailyLabels,
+                    datasets: [{
+                        label: 'Daily Revenue (₱)',
+                        data: dailyRevenue,
+                        borderColor: 'rgba(74, 222, 128, 1)',
+                        backgroundColor: 'rgba(74, 222, 128, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: 'white' }
+                        },
+                        tooltip: {
+                            enabled: hasDailyData,
+                            callbacks: {
+                                label: function (context) {
+                                    return '₱' + context.parsed.y.toLocaleString('en-PH', { minimumFractionDigits: 2 });
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: 'white',
+                                callback: function (value) {
+                                    return '₱' + value.toLocaleString();
+                                }
+                            },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        x: {
+                            ticks: {
+                                color: 'white',
+                                maxRotation: 45,
+                                minRotation: 45
+                            },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        }
+                    }
+                }
+            });
+
+            // Category Sales Chart
+            const categoryCtx = document.getElementById('categorySalesChart').getContext('2d');
+            const hasCategoryData = data.categorySales && data.categorySales.length > 0;
+
+            if (hasCategoryData) {
+                const categoryLabels = data.categorySales.map(item => item.category_name);
+                const categoryRevenue = data.categorySales.map(item => parseFloat(item.category_revenue) || 0);
+
+                const colors = [
+                    'rgba(74, 222, 128, 0.8)',
+                    'rgba(34, 197, 94, 0.8)',
+                    'rgba(22, 163, 74, 0.8)',
+                    'rgba(21, 128, 61, 0.8)',
+                    'rgba(16, 185, 129, 0.8)'
+                ];
+
+                categoryChart = new Chart(categoryCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: categoryLabels,
+                        datasets: [{
+                            data: categoryRevenue,
+                            backgroundColor: colors.slice(0, categoryLabels.length),
+                            borderColor: colors.slice(0, categoryLabels.length).map(color => color.replace('0.8', '1')),
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    color: 'white',
+                                    padding: 15
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        const label = context.label || '';
+                                        const value = context.parsed || 0;
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = ((value / total) * 100).toFixed(1);
+                                        return `${label}: ₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2 })} (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            } else {
+                categoryChart = new Chart(categoryCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['No Sales Data'],
+                        datasets: [{
+                            data: [1],
+                            backgroundColor: ['rgba(74, 222, 128, 0.3)'],
+                            borderColor: ['rgba(74, 222, 128, 1)'],
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { color: 'white' }
+                            },
+                            tooltip: {
+                                enabled: false
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        async function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+
+            Swal.fire({
+                title: 'Generating PDF...',
+                text: 'Please wait while we create your report',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            try {
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pageWidth = pdf.internal.pageSize.getWidth();
+                const pageHeight = pdf.internal.pageSize.getHeight();
+                const margin = 15;
+                let yPosition = margin;
+
+                // Add header
+                pdf.setFillColor(74, 222, 128);
+                pdf.rect(0, 0, pageWidth, 35, 'F');
+
+                pdf.setTextColor(255, 255, 255);
+                pdf.setFontSize(24);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('UniTree Sales Report', margin, 15);
+
+                pdf.setFontSize(12);
+                pdf.setFont(undefined, 'normal');
+                const sellerName = $('#sellerName').text();
+                const timeframe = $('.timeframe-btn.active').text();
+                pdf.text(`Seller: ${sellerName}`, margin, 23);
+                pdf.text(`Period: ${timeframe}`, margin, 29);
+
+                const currentDate = new Date().toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                pdf.text(`Generated: ${currentDate}`, pageWidth - margin - 60, 29);
+
+                yPosition = 45;
+
+                // Add stats summary
+                pdf.setTextColor(0, 0, 0);
+                pdf.setFontSize(16);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('Performance Summary', margin, yPosition);
+                yPosition += 10;
+
+                const stats = [
+                    { label: 'Total Revenue', value: $('#totalRevenue').text().replace('₱', 'PHP ') },
+                    { label: 'Items Sold', value: $('#totalSold').text() },
+                    { label: 'Total Orders', value: $('#totalOrders').text() },
+                    { label: 'Avg Order Value', value: $('#avgOrderValue').text().replace('₱', 'PHP ') }
+                ];
+
+                pdf.setFontSize(11);
+                pdf.setFont(undefined, 'normal');
+
+                const statBoxWidth = (pageWidth - (margin * 2) - 9) / 4;
+                stats.forEach((stat, index) => {
+                    const xPos = margin + (statBoxWidth + 3) * index;
+
+                    // Draw stat box
+                    pdf.setFillColor(240, 253, 244);
+                    pdf.setDrawColor(74, 222, 128);
+                    pdf.roundedRect(xPos, yPosition, statBoxWidth, 20, 3, 3, 'FD');
+
+                    pdf.setTextColor(22, 163, 74);
+                    pdf.setFont(undefined, 'bold');
+                    pdf.setFontSize(14);
+                    pdf.text(stat.value, xPos + statBoxWidth / 2, yPosition + 9, { align: 'center' });
+
+                    pdf.setTextColor(100, 100, 100);
+                    pdf.setFont(undefined, 'normal');
+                    pdf.setFontSize(9);
+                    pdf.text(stat.label, xPos + statBoxWidth / 2, yPosition + 16, { align: 'center' });
+                });
+
+                yPosition += 30;
+
+                // Function to add chart to PDF
+                const addChartToPDF = async (chartId, title, yPos) => {
+                    const canvas = document.getElementById(chartId);
+                    const imgData = canvas.toDataURL('image/png', 1.0);
+
+                    if (yPos + 90 > pageHeight - margin) {
+                        pdf.addPage();
+                        yPos = margin;
+                    }
+
+                    pdf.setFontSize(14);
+                    pdf.setFont(undefined, 'bold');
+                    pdf.setTextColor(22, 163, 74);
+                    pdf.text(title, margin, yPos);
+                    yPos += 8;
+
+                    const imgWidth = pageWidth - (margin * 2);
+                    const imgHeight = 70;
+
+                    pdf.setDrawColor(74, 222, 128);
+                    pdf.setLineWidth(0.5);
+                    pdf.rect(margin, yPos, imgWidth, imgHeight);
+
+                    pdf.addImage(imgData, 'PNG', margin + 1, yPos + 1, imgWidth - 2, imgHeight - 2);
+
+                    return yPos + imgHeight + 15;
+                };
+
+                // Function to add chart summary
+                const addChartSummary = (summaryData, yPos) => {
+                    if (yPos + 20 > pageHeight - margin) {
+                        pdf.addPage();
+                        yPos = margin;
+                    }
+
+                    pdf.setFillColor(252, 255, 253);
+                    pdf.setDrawColor(74, 222, 128);
+                    pdf.setLineWidth(0.3);
+                    pdf.roundedRect(margin, yPos, pageWidth - (margin * 2), summaryData.length * 6 + 8, 2, 2, 'FD');
+
+                    pdf.setFontSize(9);
+                    pdf.setTextColor(60, 60, 60);
+
+                    summaryData.forEach((item, index) => {
+                        const textY = yPos + 6 + (index * 6);
+                        pdf.setFont(undefined, 'bold');
+                        pdf.text('• ', margin + 3, textY);
+                        pdf.setFont(undefined, 'normal');
+                        pdf.text(item, margin + 7, textY);
+                    });
+
+                    return yPos + summaryData.length * 6 + 15;
+                };
+
+                // Add charts with summaries
+                yPosition = await addChartToPDF('productSalesChart', 'Product Sales Performance', yPosition);
+
+                // Product Sales Summary
+                if (currentAnalyticsData && currentAnalyticsData.productSales && currentAnalyticsData.productSales.length > 0) {
+                    const topProducts = currentAnalyticsData.productSales.slice(0, 5);
+                    const productSummary = topProducts.map((product, index) => {
+                        const revenue = parseFloat(product.total_revenue || 0);
+                        return `${product.product_name}: ${product.total_sold} units sold (PHP ${revenue.toLocaleString('en-PH', { minimumFractionDigits: 2 })})`;
+                    });
+                    if (currentAnalyticsData.productSales.length > 5) {
+                        productSummary.push(`...and ${currentAnalyticsData.productSales.length - 5} more products`);
+                    }
+                    yPosition = addChartSummary(productSummary, yPosition);
+                } else {
+                    yPosition = addChartSummary(['No product sales data available for this period'], yPosition);
+                }
+
+                yPosition = await addChartToPDF('dailySalesChart', 'Daily Sales Trend', yPosition);
+
+                // Daily Sales Summary
+                if (currentAnalyticsData && currentAnalyticsData.dailySales && currentAnalyticsData.dailySales.length > 0) {
+                    const dailySales = currentAnalyticsData.dailySales;
+                    const totalDays = dailySales.length;
+                    const totalRevenue = dailySales.reduce((sum, day) => sum + parseFloat(day.daily_revenue || 0), 0);
+                    const avgDailyRevenue = totalRevenue / totalDays;
+                    const maxDay = dailySales.reduce((max, day) =>
+                        parseFloat(day.daily_revenue) > parseFloat(max.daily_revenue) ? day : max
+                    );
+                    const minDay = dailySales.reduce((min, day) =>
+                        parseFloat(day.daily_revenue) < parseFloat(min.daily_revenue) ? day : min
+                    );
+
+                    const dailySummary = [
+                        `Total Days: ${totalDays} days tracked`,
+                        `Average Daily Revenue: PHP ${avgDailyRevenue.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`,
+                        `Best Day: ${new Date(maxDay.sale_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} with PHP ${parseFloat(maxDay.daily_revenue).toLocaleString('en-PH', { minimumFractionDigits: 2 })}`,
+                        `Lowest Day: ${new Date(minDay.sale_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} with PHP ${parseFloat(minDay.daily_revenue).toLocaleString('en-PH', { minimumFractionDigits: 2 })}`
+                    ];
+                    yPosition = addChartSummary(dailySummary, yPosition);
+                } else {
+                    yPosition = addChartSummary(['No daily sales data available for this period'], yPosition);
+                }
+
+                yPosition = await addChartToPDF('categorySalesChart', 'Sales by Category', yPosition);
+
+                // Category Sales Summary
+                if (currentAnalyticsData && currentAnalyticsData.categorySales && currentAnalyticsData.categorySales.length > 0) {
+                    const totalCategoryRevenue = currentAnalyticsData.categorySales.reduce((sum, cat) =>
+                        sum + parseFloat(cat.category_revenue || 0), 0
+                    );
+                    const categorySummary = currentAnalyticsData.categorySales.map(category => {
+                        const revenue = parseFloat(category.category_revenue || 0);
+                        const percentage = ((revenue / totalCategoryRevenue) * 100).toFixed(1);
+                        return `${category.category_name}: PHP ${revenue.toLocaleString('en-PH', { minimumFractionDigits: 2 })} (${percentage}%)`;
+                    });
+                    yPosition = addChartSummary(categorySummary, yPosition);
+                } else {
+                    yPosition = addChartSummary(['No category sales data available for this period'], yPosition);
+                }
+
+                // Add footer on last page
+                const totalPages = pdf.internal.getNumberOfPages();
+                for (let i = 1; i <= totalPages; i++) {
+                    pdf.setPage(i);
+                    pdf.setFillColor(240, 240, 240);
+                    pdf.rect(0, pageHeight - 15, pageWidth, 15, 'F');
+
+                    pdf.setTextColor(100, 100, 100);
+                    pdf.setFontSize(8);
+                    pdf.text(
+                        `Page ${i} of ${totalPages}`,
+                        pageWidth / 2,
+                        pageHeight - 8,
+                        { align: 'center' }
+                    );
+                    pdf.text(
+                        'UniTree - Sales Analytics Platform',
+                        margin,
+                        pageHeight - 8
+                    );
+                }
+
+                // Save the PDF
+                const fileName = `UniTree_Sales_Report_${sellerName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+                pdf.save(fileName);
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'PDF Generated!',
+                    text: 'Your sales report has been downloaded successfully.',
+                    confirmButtonColor: '#4ade80'
+                });
+
+            } catch (error) {
+                console.error('PDF generation error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Export Failed',
+                    text: 'There was an error generating the PDF. Please try again.',
+                    confirmButtonColor: '#4ade80'
+                });
+            }
+        }
+
+        function showLoading() {
+            const charts = ['productSalesChart', 'dailySalesChart', 'categorySalesChart'];
+            charts.forEach(chartId => {
+                const canvas = document.getElementById(chartId);
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Loading...', canvas.width / 2, canvas.height / 2);
+            });
+        }
+
+        function showError(message) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: message,
+                confirmButtonColor: '#4ade80'
+            });
+        }
+    </script>
+</body>
+
+</html>

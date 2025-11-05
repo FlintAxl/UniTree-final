@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Choose a Pet</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+ 
+  <style>
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background: #2d5650;
+        background-image: url('/images/loginimage.jpg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        margin: 0;
+        font-family: 'Impact';
+        position: relative;
+    }
+
+    .container {
+      margin-top: 80px;
+      margin-bottom: 80px;
+      background: transparent !important;
+    }
+
+    .title-section {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .title-container h3 {
+      color: white;
+      font-size: 2.5rem;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #a7f3d0;
+      font-size: 1.2rem;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+
+    .pet-grid {
+      display: flex;
+      gap: 30px;
+      justify-content: center;
+      flex-wrap: nowrap;
+      align-items: stretch;
+    }
+
+    .pet-grid > div {
+      flex: 1;
+      max-width: 350px;
+    }
+
+    .pet-choice {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      padding: 30px;
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      min-height: 350px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pet-choice:hover {
+      transform: translateY(-10px) scale(1.05);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+      background: rgba(255, 255, 255, 1);
+    }
+
+    .pet-image-container {
+      width: 100%;
+      height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .pet-static, .pet-gif {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      position: absolute;
+    }
+
+    .pet-static {
+      opacity: 1;
+      z-index: 2;
+    }
+
+    .pet-gif {
+      opacity: 0;
+      z-index: 1;
+    }
+
+    .pet-choice:hover .pet-static {
+      opacity: 0;
+    }
+
+    .pet-choice:hover .pet-gif {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+
+    .pet-choice.vibrating {
+      animation: vibrate 0.3s;
+    }
+
+    @keyframes vibrate {
+      0%, 100% { transform: translateY(-10px) translateX(0) scale(1.05); }
+      25% { transform: translateY(-10px) translateX(-5px) scale(1.05); }
+      75% { transform: translateY(-10px) translateX(5px) scale(1.05); }
+    }
+
+    .modal-content {
+      border-radius: 15px;
+      border: none;
+    }
+
+    .modal-header {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      border-radius: 15px 15px 0 0;
+    }
+
+    .modal-footer {
+      border-top: none;
+      padding: 20px;
+    }
+
+    .login-floating-btn {
+      animation: pulse-green 2s infinite;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .login-floating-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transition: left 0.5s;
+    }
+    
+    .login-floating-btn:hover::before {
+      left: 100%;
+    }
+    
+    .login-floating-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 40px rgba(16, 185, 129, 0.6);
+    }
+    
+    @keyframes pulse-green {
+      0%, 100% { 
+        box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+        transform: scale(1);
+      }
+      50% { 
+        box-shadow: 0 15px 40px rgba(16, 185, 129, 0.6);
+        transform: scale(1.05);
+      }
+    }
+    
+    @media (max-width: 992px) {
+      .pet-grid {
+        flex-wrap: wrap;
+      }
+      
+      .pet-grid > div {
+        flex: 1 1 calc(50% - 15px);
+        min-width: 250px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .login-button-container {
+        bottom: 20px;
+        right: 20px;
+        left: 20px;
+        text-align: center;
+      }
+      
+      .login-floating-btn {
+        width: 100%;
+        border-radius: 25px;
+        padding: 12px 20px;
+      }
+
+      .pet-grid {
+        gap: 20px;
+        flex-direction: column;
+      }
+
+      .pet-grid > div {
+        flex: 1 1 100%;
+        max-width: 100%;
+      }
+
+      .pet-choice {
+        min-height: 300px;
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="title-section">
+      <div class="title-container">
+        <h3>🌱 Choose Your Starter Pet 🌱</h3>
+        <p class="subtitle">Hover to see them come alive!</p>
+      </div>
+    </div>
+    
+    <div class="pet-grid" id="petChoices">
+      <div>
+        <div class="card pet-choice" data-choice="1" style="cursor:pointer">
+          <div class="pet-image-container">
+            <img src="/images/pets1.png" alt="Sprout Pet" class="pet-static" id="sproutStatic">
+            <img src="/images/pets1.gif" alt="Sprout Pet" class="pet-gif" id="sproutPet">
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card pet-choice" data-choice="2" style="cursor:pointer">
+          <div class="pet-image-container">
+            <img src="/images/pets2.1.png" alt="Pink Pet" class="pet-static" id="pinkStatic">
+            <img src="/images/pets2.1.gif" alt="Pink Pet" class="pet-gif" id="pinkPet">
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card pet-choice" data-choice="3" style="cursor:pointer">
+          <div class="pet-image-container">
+            <img src="/images/pets3.1.png" alt="Potato Pet" class="pet-static" id="potatoStatic">
+            <img src="/images/pets3.1.gif" alt="Potato Pet" class="pet-gif" id="potatoPet">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pet name modal -->
+  <div class="modal" id="petNameModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Name your pet</h5>
+        </div>
+        <div class="modal-body">
+          <input id="petNameInput" class="form-control" placeholder="Enter pet name">
+          <input type="hidden" id="selectedChoice">
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="cancelPetBtn" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="button" id="confirmPetBtn" class="btn btn-primary">Confirm</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/pet.js"></script> 
+  
+  <script>
+    // Audio setup for character interactions
+    let audioContext;
+    
+    function initAudio() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+    
+    function playCuteSound() {
+      try {
+        initAudio();
+        
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.1);
+        
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+        
+        oscillator.type = 'sine';
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.15);
+      } catch (e) {
+        console.log('Audio not supported');
+      }
+    }
+
+    // Add click interaction to pet cards
+    document.querySelectorAll('.pet-choice').forEach(card => {
+      card.addEventListener('click', function(e) {
+        this.classList.add('vibrating');
+        playCuteSound();
+        
+        setTimeout(() => {
+          this.classList.remove('vibrating');
+        }, 300);
+      });
+    });
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <div class="login-button-container" style="position: fixed; bottom: 30px; right: 30px; z-index: 1000;">
+    <button class="btn btn-primary login-floating-btn" 
+            onclick="window.location.href='login.html'"
+            style="background: linear-gradient(135deg, #10b981, #059669); 
+                   border: none; 
+                   border-radius: 50px; 
+                   padding: 15px 25px; 
+                   font-weight: 600; 
+                   font-size: 1rem; 
+                   box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+                   transition: all 0.3s ease;
+                   cursor: pointer;">
+      Login to Continue
+    </button>
+  </div>
+</body>
+</html>

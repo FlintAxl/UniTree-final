@@ -1,0 +1,218 @@
+<header>
+    <link rel="stylesheet" href="css/header.css">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- SweetAlert2 for notifications -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </header>
+  
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary px-3">
+    <a class="navbar-brand" href="index.html">UniTree</a>
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarNav"
+      aria-controls="navbarNav"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+  
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="index.html">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="products.html">Shop</a>
+        </li>
+        <li class="nav-item" id="profileNav">
+          <a class="nav-link" href="profile.html">Profile</a>
+        </li>
+        <li class="nav-item" id="cartNav">
+          <a class="nav-link" href="cart.html">
+            <i class="fas fa-shopping-cart"></i> Cart
+            <span class="badge bg-secondary" id="cartCount">0</span>
+          </a>
+        </li>
+        <li class="nav-item" id="ordersNav">
+          <a class="nav-link" href="myorders.html">My Orders</a>
+        </li>
+      </ul>
+      
+      <ul class="navbar-nav">
+        <li class="nav-item" id="registerNav">
+          <a class="nav-link" href="register.html">Register</a>
+        </li>
+        <li class="nav-item" id="loginNav">
+          <a class="nav-link" href="login.html">Login</a>
+        </li>
+        <li class="nav-item" id="adminNav" style="display: none;">
+          <a class="nav-link" href="admin.html">Admin Dashboard</a>
+        </li>
+        <li class="nav-item" id="logoutNav" style="display: none;">
+          <a class="nav-link" href="#" id="logoutBtn">Logout</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  
+  <!-- jQuery and Bootstrap JS -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <script>
+  $(document).ready(function() {
+    // Get user data from session storage
+    const userId = sessionStorage.getItem('userId');
+    const role = sessionStorage.getItem('role');
+    const username = sessionStorage.getItem('username');
+    const apiUrl = sessionStorage.getItem('apiUrl') || '';
+  
+    // Update UI based on authentication status
+    function updateAuthUI() {
+      if (userId) {
+        // User is logged in
+        $('#loginNav').hide();
+        $('#registerNav').hide();
+        $('#logoutNav').show();
+        $('#profileNav').show();
+        $('#ordersNav').show();
+        
+        // Show admin link if user is admin
+        if (role === 'admin') {
+          $('#adminNav').show();
+        } else {
+          $('#adminNav').hide();
+        }
+      } else {
+        // User is not logged in
+        $('#loginNav').show();
+        $('#registerNav').show();
+        $('#logoutNav').hide();
+        $('#profileNav').hide();
+        $('#ordersNav').hide();
+        $('#adminNav').hide();
+      }
+      
+      // Update cart count
+      updateCartCount();
+    }
+  
+    // Update cart count
+    function updateCartCount() {
+      try {
+        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        const count = cart.reduce((total, item) => total + (item.quantity || 1), 0);
+        $('#cartCount').text(count);
+      } catch (e) {
+        console.error('Error updating cart count:', e);
+        $('#cartCount').text('0');
+      }
+    }
+  
+    $(document).ready(function () {
+    const userId = sessionStorage.getItem('userId');
+    if (userId) {
+      $('#logoutNav').show();
+    }
+
+    $('#logoutBtn').on('click', function (e) {
+  e.preventDefault();
+
+  const userId = sessionStorage.getItem('userId');
+  if (!userId) {
+    console.warn("⚠️ No userId in sessionStorage");
+    sessionStorage.clear();
+    window.location.href = 'index.html';
+    return;
+  }
+
+  console.log("🔹 [FRONTEND] Sending logout request for userId:", userId);
+
+  $.ajax({
+    method: "POST",
+    url: `${url}api/v1/logout`,
+    data: JSON.stringify({ id: JSON.parse(userId) }), // parse because you stored it as JSON
+    processData: false,
+    contentType: 'application/json; charset=utf-8',
+    dataType: "json",
+    success: function (res) {
+      console.log("✅ [FRONTEND] Logout success response:", res);
+      sessionStorage.clear();
+      Swal.fire({
+        icon: "success",
+        text: "Logged out successfully",
+        timer: 1000,
+        showConfirmButton: false,
+        timerProgressBar: true
+      }).then(() => {
+        window.location.href = 'index.html';
+      });
+    },
+    error: function (xhr, status, err) {
+      console.error("❌ [FRONTEND] Logout error:", err);
+      console.error("❌ [FRONTEND] Response text:", xhr.responseText);
+      // even if there's an error, clear local session
+      sessionStorage.clear();
+      window.location.href = 'index.html';
+    }
+  });
+});
+
+  });
+  
+    // Clear user session and show success message if provided
+  function clearUserSession(successMessage) {
+    // Clear all user-related data
+    sessionStorage.clear();
+    localStorage.removeItem('cart');
+    
+    // Show success message if provided
+    if (successMessage) {
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: successMessage,
+        timer: 1500,
+        showConfirmButton: false
+      }).then(() => {
+        window.location.href = 'index.html';
+      });
+    } else {
+      window.location.href = 'index.html';
+    }
+  }
+
+  // Initialize the UI
+  updateAuthUI();
+  
+  // Listen for storage events (for cart updates across tabs)
+  $(window).on('storage', function(e) {
+    if (e.originalEvent.key === 'cart') {
+      updateCartCount();
+    }
+  });
+  
+  // Handle logout errors
+  $(document).on('ajaxError', function(event, jqxhr, settings, thrownError) {
+    if (jqxhr.status === 401) {
+      // Unauthorized, clear session and redirect
+      clearUserSession('You have been logged out due to an unauthorized request.');
+    } else if (jqxhr.status === 500) {
+      // Internal server error, show error message
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'An internal server error occurred. Please try again later.',
+        timer: 1500,
+        showConfirmButton: false
+      });
+    }
+  });
+  });
+  </script>

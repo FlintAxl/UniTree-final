@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Rewards - UniTree</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+       <link rel="stylesheet" href="css/my-rewards.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+  <div id="header"></div>
+  
+  <div class="container mt-4">
+    <div class="page-header">
+      <h1>My Rewards</h1>
+    </div>
+    
+    <div class="filter-bar">
+      <div class="col-md-12">
+        <div class="alert alert-success">
+          <div class="coin-display">
+            <i class="fa-solid fa-coins coin-icon"></i>
+            <div>
+              <h2>Total Coins Earned</h2>
+              <span id="totalCoins">0</span>
+            </div>
+          </div>
+          <p>Use your coins to care for your pet and unlock exclusive rewards!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 🎮 GAME INTERFACE ROW -->
+    <div id="gameRow">
+
+      <!-- 🐾 PET SECTION (LEFT COLUMN) -->
+      <div class="game-card text-center" id="petSection">
+        <!-- Dynamically populated by JS -->
+      </div>
+
+      <!-- RIGHT COLUMN: SHOP, INVENTORY, DISCOUNT -->
+      <div>
+
+        <!-- 💧 SHOP SECTION -->
+        <div class="shop-card text-center">
+          <h4 class="section-title"><i class="fa-solid fa-store"></i> Pet Care Shop</h4>
+          <button id="buyWaterBtn" class="btn btn-primary me-2 mb-2">
+            <i class="fa-solid fa-bucket"></i> Buy Water (2 coins)
+          </button>
+          <button id="buyFertilizerBtn" class="btn btn-success mb-2">
+            <i class="fa-solid fa-seedling"></i> Buy Fertilizer (5 coins)
+          </button>
+        </div>
+
+        <!-- 📦 INVENTORY SECTION -->
+        <div class="inventory-card text-center">
+          <h4 class="section-title"><i class="fa-solid fa-box"></i> Inventory</h4>
+          <p><i class="fa-solid fa-bucket text-primary"></i> <span>Water Buckets: <span id="waterCount">0</span></span></p>
+          <p><i class="fa-solid fa-seedling text-success"></i> <span>Fertilizer: <span id="fertilizerCount">0</span></span></p>
+        </div>
+
+        <!-- 💰 DISCOUNT TRADE SECTION -->
+<div class="game-card text-center" id="discountTradeSection">
+  <h4 class="section-title"><i class="fa-solid fa-tags"></i> Trade Coins for Discounts</h4>
+  <p>Exchange your coins for discount coupons!</p>
+
+  <div id="discountOptions" class="d-flex flex-wrap justify-content-center gap-2">
+    <!-- Dynamically filled by JS -->
+  </div>
+</div>
+
+        <!-- 🏷️ COUPONS / DISCOUNTS SECTION -->
+        <div class="discount-card text-center" id="discountSection">
+          <h4 class="section-title"><i class="fa-solid fa-ticket"></i> My Coupons / Discounts</h4>
+          <div id="discountList">
+            <p class="text-muted">Loading your discounts...</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 🧺 Inventory Modal -->
+  <div class="modal fade" id="inventoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">My Inventory</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body text-center">
+          <p><i class="fa-solid fa-bucket text-primary"></i> Water Buckets: <span id="waterCount">0</span></p>
+          <p><i class="fa-solid fa-seedling text-success"></i> Fertilizer: <span id="fertilizerCount">0</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="js/config.js"></script>
+  <script src="js/myReward.js"></script>
+
+  <script>
+    $(document).ready(function() {
+      $('#header').load('header.html');
+    });
+  </script>
+</body>
+</html>

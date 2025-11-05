@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders - UniTree</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+            margin-top: 90px;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .orders-hero {
+            padding: 4rem 6%;
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 3rem;
+            height: 200px;
+        }
+
+        .orders-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(circle at 20% 50%, rgba(22, 163, 74, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 50%, rgba(34, 197, 94, 0.15) 0%, transparent 50%);
+        }
+
+        .orders-hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .orders-title {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 900;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffffff 0%, #86efac 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .orders-subtitle {
+            font-size: 1.2rem;
+            color: #86efac;
+            opacity: 0.9;
+        }
+
+        .orders-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 6% 4rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(22, 163, 74, 0.15);
+            border-color: #22c55e;
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #16a34a, #22c55e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #000000;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .table-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        table.dataTable {
+            border-collapse: separate !important;
+            border-spacing: 0;
+        }
+
+        table.dataTable thead th {
+            background: linear-gradient(135deg, #16a34a, #22c55e) !important;
+            color: white !important;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.85rem;
+            padding: 1.2rem 1rem !important;
+            border: none !important;
+        }
+
+        table.dataTable thead th:first-child {
+            border-top-left-radius: 12px;
+        }
+
+        table.dataTable thead th:last-child {
+            border-top-right-radius: 12px;
+        }
+
+        table.dataTable tbody td {
+            padding: 1.2rem 1rem !important;
+            vertical-align: middle;
+            border-bottom: 1px solid #f0f0f0 !important;
+            color: #374151;
+        }
+
+        table.dataTable tbody tr {
+            transition: background-color 0.2s;
+        }
+
+        table.dataTable tbody tr:hover {
+            background-color: #f0fdf4 !important;
+        }
+
+        .status-badge {
+            padding: 0.4rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: inline-block;
+        }
+
+        .status-pending {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: white;
+        }
+
+        .status-shipped {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+        }
+
+        .status-received {
+            background: linear-gradient(135deg, #16a34a, #22c55e);
+            color: white;
+        }
+
+        .status-cancelled {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+
+        .btn {
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.5rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+        }
+
+        .btn-cancel {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+
+        .btn-cancel:hover {
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+            color: white;
+        }
+
+        .btn-received {
+            background: linear-gradient(135deg, #16a34a, #22c55e);
+            color: white;
+        }
+
+        .btn-received:hover {
+            box-shadow: 0 8px 20px rgba(22, 163, 74, 0.3);
+            color: white;
+        }
+
+        .btn-review {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+        }
+
+        .btn-review:hover {
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);
+            color: white;
+        }
+
+        .btn-receipt {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+            color: white;
+        }
+
+        .btn-receipt:hover {
+            box-shadow: 0 8px 20px rgba(14, 165, 233, 0.3);
+            color: white;
+        }
+
+        .btn-pdf {
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: white;
+        }
+
+        .btn-pdf:hover {
+            box-shadow: 0 8px 20px rgba(5, 150, 105, 0.3);
+            color: white;
+        }
+
+        .btn-cancel {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.25);
+        }
+
+        .btn-cancel:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
+            background: linear-gradient(135deg, #f87171, #ef4444);
+        }
+
+        .btn-received {
+            background: linear-gradient(135deg, #16a34a, #22c55e);
+            color: white;
+            box-shadow: 0 4px 15px rgba(22, 163, 74, 0.25);
+        }
+
+        .btn-received:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(22, 163, 74, 0.4);
+            background: linear-gradient(135deg, #22c55e, #4ade80);
+        }
+
+        .btn-review {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.25);
+        }
+
+        .btn-review:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
+            background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+        }
+
+        .btn-receipt {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+            color: white;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.25);
+        }
+
+        .btn-receipt:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(14, 165, 233, 0.4);
+            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+        }
+
+        .btn-pdf {
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: white;
+            box-shadow: 0 4px 15px rgba(5, 150, 105, 0.25);
+        }
+
+        .btn-pdf:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(5, 150, 105, 0.4);
+            background: linear-gradient(135deg, #10b981, #34d399);
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #16a34a, #22c55e);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-top: 2rem;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(22, 163, 74, 0.3);
+            color: white;
+        }
+
+        .modal-content {
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #16a34a, #22c55e);
+            color: white;
+            border-radius: 20px 20px 0 0;
+            padding: 1.5rem;
+            border: none;
+        }
+
+        .modal-title {
+            font-weight: 700;
+            font-size: 1.3rem;
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .form-group {
+            background: #f9fafb;
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-bottom: 1.5rem;
+            border: 2px solid #e5e7eb;
+            transition: border-color 0.3s;
+        }
+
+        .form-group:hover {
+            border-color: #22c55e;
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: 10px;
+            border: 2px solid #e5e7eb;
+            padding: 0.75rem;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #22c55e;
+            box-shadow: 0 0 0 0.2rem rgba(22, 163, 74, 0.15);
+        }
+
+        #submitReviewBtn {
+            background: linear-gradient(135deg, #16a34a, #22c55e);
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        #submitReviewBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(22, 163, 74, 0.3);
+        }
+
+        .dataTables_wrapper .dataTables_length select,
+        .dataTables_wrapper .dataTables_filter input {
+            border-radius: 10px;
+            border: 2px solid #e5e7eb;
+            padding: 0.5rem;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+            background: linear-gradient(135deg, #16a34a, #22c55e) !important;
+            border: none !important;
+            color: white !important;
+            border-radius: 8px !important;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            background: #f0fdf4 !important;
+            border: none !important;
+            color: #16a34a !important;
+        }
+
+        /* Receipt Modal Styles */
+        .receipt-container {
+            max-width: 600px;
+            margin: 0 auto;
+            font-family: 'Courier New', monospace;
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .receipt-header {
+            text-align: center;
+            border-bottom: 2px solid #16a34a;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .receipt-header h2 {
+            color: #16a34a;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .receipt-section {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #16a34a;
+        }
+
+        .receipt-section h4 {
+            color: #16a34a;
+            margin-bottom: 0.75rem;
+            font-weight: bold;
+        }
+
+        .receipt-section p {
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        .receipt-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .receipt-table th,
+        .receipt-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .receipt-table th {
+            background-color: #16a34a;
+            color: white;
+            font-weight: bold;
+        }
+
+        .receipt-table tbody tr:hover {
+            background-color: #f0fdf4;
+        }
+
+        .total-row {
+            background-color: #e8f5e8 !important;
+            font-weight: bold;
+            border-top: 2px solid #16a34a;
+        }
+
+        .receipt-footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #dee2e6;
+            color: #6c757d;
+        }
+
+        .status-received {
+            background: linear-gradient(135deg, #16a34a, #22c55e);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        @media print {
+            .receipt-container {
+                box-shadow: none;
+                margin: 0;
+                padding: 1rem;
+            }
+
+            .modal-header,
+            .modal-footer {
+                display: none !important;
+            }
+
+            .modal-body {
+                padding: 0 !important;
+            }
+        }
+
+        @media (max-width: 968px) {
+            .orders-hero {
+                padding: 3rem 5%;
+            }
+
+            .orders-container {
+                padding: 0 5% 3rem;
+            }
+
+            .table-card {
+                padding: 1rem;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="header"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#header').load('header.html');
+        });
+    </script>
+
+    <div class="orders-hero">
+        <div class="orders-hero-content">
+            <h1 class="orders-title">My Orders</h1>
+            <p class="orders-subtitle">Track and manage all your purchases</p>
+        </div>
+    </div>
+
+    <div class="orders-container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📦</div>
+                <div class="stat-number" id="totalOrders">0</div>
+                <div class="stat-label">Total Orders</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⏳</div>
+                <div class="stat-number" id="pendingOrders">0</div>
+                <div class="stat-label">Pending</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🚚</div>
+                <div class="stat-number" id="shippedOrders">0</div>
+                <div class="stat-label">Shipped</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-number" id="completedOrders">0</div>
+                <div class="stat-label">Completed</div>
+            </div>
+        </div>
+
+        <div class="table-card">
+            <table id="customerOrdersTable" class="table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Items</th>
+                        <th>Total Price</th>
+                        <th>Status</th>
+                        <th>Date Placed</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+
+        <a href="index.html" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+            Continue Shopping
+        </a>
+    </div>
+
+    <div class="modal fade" id="reviewModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Leave a Review</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="reviewModalBody"></div>
+                <div class="modal-footer">
+                    <button id="submitReviewBtn" class="btn btn-primary">Submit Reviews</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="receiptModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Order Receipt</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="receiptModalBody"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success" onclick="downloadReceiptPDF()">Download PDF
+                        Receipt</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/order.js"></script>
+
+    <script>
+
+        $(document).ready(function () {
+
+            // Update stats after table loads
+            $('#customerOrdersTable').on('init.dt', function () {
+                updateOrderStats();
+            });
+
+            // Also update after table redraws
+            $('#customerOrdersTable').on('draw.dt', function () {
+                updateOrderStats();
+            });
+        });
+
+        function updateOrderStats() {
+            const table = $('#customerOrdersTable').DataTable();
+            const data = table.rows().data();
+
+            let total = data.length;
+            let pending = 0;
+            let shipped = 0;
+            let completed = 0;
+
+            data.each(function (row) {
+                if (row.status === 'pending') pending++;
+                if (row.status === 'shipped') shipped++;
+                if (row.status === 'received') completed++;
+            });
+
+            $('#totalOrders').text(total);
+            $('#pendingOrders').text(pending);
+            $('#shippedOrders').text(shipped);
+            $('#completedOrders').text(completed);
+        }
+
+        // Enhance DataTable rendering
+        $(document).ready(function () {
+            $('#customerOrdersTable').on('draw.dt', function () {
+                // Add status badges
+                $('#customerOrdersTable tbody tr').each(function () {
+                    const statusCell = $(this).find('td:eq(3)');
+                    const status = statusCell.text().trim();
+
+                    let badgeClass = '';
+                    switch (status) {
+                        case 'pending': badgeClass = 'status-pending'; break;
+                        case 'shipped': badgeClass = 'status-shipped'; break;
+                        case 'received': badgeClass = 'status-received'; break;
+                        case 'cancelled': badgeClass = 'status-cancelled'; break;
+                    }
+
+                    statusCell.html(`<span class="status-badge ${badgeClass}">${status}</span>`);
+                });
+
+                // Style action buttons
+                $('#customerOrdersTable tbody button').each(function () {
+                    const text = $(this).text().trim();
+                    $(this).addClass('action-btn');
+
+                    if (text.includes('Cancel')) {
+                        $(this).addClass('btn-cancel');
+                    } else if (text.includes('Received')) {
+                        $(this).addClass('btn-received');
+                    } else if (text.includes('Review')) {
+                        $(this).addClass('btn-review');
+                    } else if (text.includes('Receipt')) {
+                        $(this).addClass('btn-receipt');
+                    } else if (text.includes('PDF')) {
+                        $(this).addClass('btn-pdf');
+                    }
+                });
+            });
+        });
+        function downloadReceiptPDF() {
+            const receiptContent = document.getElementById('receiptModalBody');
+
+            if (!receiptContent || !receiptContent.innerHTML.trim()) {
+                Swal.fire('Error', 'No receipt content to download', 'error');
+                return;
+            }
+
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const pageWidth = doc.internal.pageSize.getWidth();
+
+                // === HEADER ===
+                const orderIdMatch = receiptContent.innerHTML.match(/Order ID.*?#(\d+)/);
+                const orderId = orderIdMatch ? orderIdMatch[1] : 'Unknown';
+
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(22);
+                doc.setTextColor(22, 163, 74);
+                doc.text('UniTree', pageWidth / 2, 20, { align: 'center' });
+
+                doc.setFontSize(14);
+                doc.setTextColor(0, 0, 0);
+                doc.text('Official Receipt', pageWidth / 2, 30, { align: 'center' });
+
+                const receiptDate = new Date().toLocaleString();
+                doc.setFontSize(10);
+                doc.text(`Date Issued: ${receiptDate}`, pageWidth / 2, 38, { align: 'center' });
+
+                doc.setDrawColor(22, 163, 74);
+                doc.line(20, 42, 190, 42);
+
+                let y = 50;
+
+                // === ORDER INFO ===
+                doc.setFontSize(12);
+                doc.setTextColor(22, 163, 74);
+                doc.text('Order Information', 20, y);
+                y += 8;
+
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+                doc.text(`Order ID: #${orderId}`, 20, y);
+                y += 6;
+
+                const orderDateMatch = receiptContent.innerHTML.match(/Order Date.*?(\d{1,2}\/\d{1,2}\/\d{4}[^<]*)/);
+                const orderDate = orderDateMatch ? orderDateMatch[1].trim() : 'N/A';
+                doc.text(`Order Date: ${orderDate}`, 20, y);
+                y += 6;
+
+                const statusMatch = receiptContent.innerHTML.match(/Status.*?<span[^>]*>(.*?)<\/span>/);
+                const orderStatus = statusMatch ? statusMatch[1].trim() : 'N/A';
+                doc.text(`Status: ${orderStatus}`, 20, y);
+                y += 6;
+
+                // ✅ Extract Payment Method
+                const paymentMatch = receiptContent.innerHTML.match(/Payment Method:<\/strong>\s*[^A-Za-z]*([^<]+)/);
+                const paymentMethod = paymentMatch ? paymentMatch[1].trim() : 'Cash on Delivery';
+                doc.text(`Payment Method: ${paymentMethod}`, 20, y);
+                y += 12;
+
+                // === CUSTOMER INFO ===
+                doc.setFontSize(12);
+                doc.setTextColor(22, 163, 74);
+                doc.text('Customer Information', 20, y);
+                y += 8;
+
+                const nameMatch = receiptContent.innerHTML.match(/Name:<\/strong>\s*([^<]+)/);
+                const customerName = nameMatch ? nameMatch[1].trim() : 'N/A';
+
+                const emailMatch = receiptContent.innerHTML.match(/Email:<\/strong>\s*([^<]+)/);
+                const customerEmail = emailMatch ? emailMatch[1].trim() : 'N/A';
+
+                const addressMatch = receiptContent.innerHTML.match(/Address:<\/strong>\s*([^<]+)/);
+                const customerAddress = addressMatch ? addressMatch[1].trim() : 'N/A';
+
+                const contactMatch = receiptContent.innerHTML.match(/Contact Number:<\/strong>\s*([^<]+)/);
+                const customerContact = contactMatch ? contactMatch[1].trim() : 'N/A';
+
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+                doc.text(`Name: ${customerName}`, 20, y);
+                y += 6;
+                doc.text(`Email: ${customerEmail}`, 20, y);
+                y += 6;
+                doc.text(`Address: ${customerAddress}`, 20, y);
+                y += 6;
+                doc.text(`Contact Number: ${customerContact}`, 20, y);
+                y += 12;
+
+                // === ORDER ITEMS ===
+                doc.setFontSize(12);
+                doc.setTextColor(22, 163, 74);
+                doc.text('Order Items', 20, y);
+                y += 12;
+
+                const headers = ['Item', 'Qty', 'Price', 'Total'];
+                const colX = [20, 110, 140, 165];
+
+                doc.setFontSize(10);
+                doc.setTextColor(255, 255, 255);
+                doc.setFillColor(22, 163, 74);
+                doc.rect(20, y - 5, 170, 8, 'F');
+                headers.forEach((h, i) => doc.text(h, colX[i] + 2, y));
+                y += 6;
+                doc.setTextColor(0, 0, 0);
+
+                const rows = receiptContent.querySelectorAll('.receipt-table tbody tr');
+                let subtotal = 0;
+
+                rows.forEach((row) => {
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length >= 4 && !row.classList.contains('total-row') &&
+                        !row.classList.contains('subtotal-row') && !row.classList.contains('discount-row')) {
+                        const item = cells[0].textContent.trim();
+                        const qty = cells[1].textContent.trim();
+                        const price = parseFloat(cells[2].textContent.replace(/[^\d.]/g, '')) || 0;
+                        const lineTotal = parseFloat(cells[3].textContent.replace(/[^\d.]/g, '')) || 0;
+
+                        subtotal += lineTotal;
+
+                        const shortName = item.length > 40 ? item.substring(0, 37) + '...' : item;
+                        doc.text(shortName, colX[0], y);
+                        doc.text(qty, colX[1], y);
+                        doc.text(`PHP ${price.toFixed(2)}`, colX[2], y);
+                        doc.text(`PHP ${lineTotal.toFixed(2)}`, colX[3], y);
+                        y += 6;
+                    }
+                });
+
+                // === DISCOUNT & TOTAL ===
+                let discount = 0;
+                let discountCode = '';
+
+                const discountRowMatch = receiptContent.innerHTML.match(/Discount[^₱]*?\(([^)]+)\)[^₱]*?₱([0-9,]+\.?[0-9]*)/);
+                if (discountRowMatch) {
+                    discountCode = discountRowMatch[1].trim();
+                    discount = parseFloat(discountRowMatch[2].replace(/,/g, '')) || 0;
+                } else {
+                    const noDiscountMatch = receiptContent.innerHTML.match(/Discount.*?No Discount/i);
+                    if (!noDiscountMatch) {
+                        const simpleDiscountMatch = receiptContent.innerHTML.match(/Discount[^₱]*?₱([0-9,]+\.?[0-9]*)/);
+                        if (simpleDiscountMatch) {
+                            discount = parseFloat(simpleDiscountMatch[1].replace(/,/g, '')) || 0;
+                        }
+                    }
+                }
+
+                const totalMatch = receiptContent.innerHTML.match(/Total Amount[^₱]*?₱([0-9,]+\.?[0-9]*)/);
+                const total = totalMatch ? parseFloat(totalMatch[1].replace(/,/g, '')) : subtotal - discount;
+
+                y += 8;
+                doc.setFontSize(10);
+                doc.setTextColor(22, 163, 74);
+                doc.text('Summary', 20, y);
+                y += 6;
+
+                doc.setTextColor(0, 0, 0);
+                doc.text(`Subtotal: PHP ${subtotal.toFixed(2)}`, 20, y);
+                y += 6;
+
+                if (discount > 0 && discountCode) {
+                    doc.text(`Discount (${discountCode}): -PHP ${discount.toFixed(2)}`, 20, y);
+                } else if (discount > 0) {
+                    doc.text(`Discount: -PHP ${discount.toFixed(2)}`, 20, y);
+                } else {
+                    doc.text(`Discount: PHP 0.00`, 20, y);
+                }
+                y += 6;
+
+                doc.setFontSize(11);
+                doc.setFont('helvetica', 'bold');
+                doc.text(`Total Amount: PHP ${total.toFixed(2)}`, 20, y);
+                doc.setFont('helvetica', 'normal');
+                y += 8;
+
+                // ✅ Add Payment Method to Summary
+                doc.setFontSize(10);
+                doc.text(`Payment Method: ${paymentMethod}`, 20, y);
+                y += 12;
+
+                // === FOOTER ===
+                doc.setFontSize(9);
+                doc.setTextColor(100);
+                doc.text('Thank you for shopping with UniTree!', pageWidth / 2, y, { align: 'center' });
+
+                doc.save(`UniTree_Receipt_Order#${orderId}.pdf`);
+            } catch (err) {
+                console.error('PDF Generation Error:', err);
+                Swal.fire('Error', 'Failed to generate PDF receipt', 'error');
+            }
+        }
+    </script>
+</body>
+
+</html>
